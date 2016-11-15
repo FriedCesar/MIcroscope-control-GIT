@@ -1,0 +1,13 @@
+C:\Users\TOSHIBA\Documents\Archivos doctorado\2016-2\Programming\Microscope Control\Microscope control V1.0\Microscope Control\bin\Debug\Microscope Control.exe.config
+C:\Users\TOSHIBA\Documents\Archivos doctorado\2016-2\Programming\Microscope Control\Microscope control V1.0\Microscope Control\bin\Debug\Microscope Control.exe
+C:\Users\TOSHIBA\Documents\Archivos doctorado\2016-2\Programming\Microscope Control\Microscope control V1.0\Microscope Control\bin\Debug\Microscope Control.pdb
+C:\Users\TOSHIBA\Documents\Archivos doctorado\2016-2\Programming\Microscope Control\Microscope control V1.0\Microscope Control\bin\Debug\AForge.dll
+C:\Users\TOSHIBA\Documents\Archivos doctorado\2016-2\Programming\Microscope Control\Microscope control V1.0\Microscope Control\bin\Debug\AForge.Video.dll
+C:\Users\TOSHIBA\Documents\Archivos doctorado\2016-2\Programming\Microscope Control\Microscope control V1.0\Microscope Control\bin\Debug\AForge.xml
+C:\Users\TOSHIBA\Documents\Archivos doctorado\2016-2\Programming\Microscope Control\Microscope control V1.0\Microscope Control\bin\Debug\AForge.Video.xml
+C:\Users\TOSHIBA\Documents\Archivos doctorado\2016-2\Programming\Microscope Control\Microscope control V1.0\Microscope Control\obj\Debug\Microscope_Control.Form1.resources
+C:\Users\TOSHIBA\Documents\Archivos doctorado\2016-2\Programming\Microscope Control\Microscope control V1.0\Microscope Control\obj\Debug\Microscope_Control.Properties.Resources.resources
+C:\Users\TOSHIBA\Documents\Archivos doctorado\2016-2\Programming\Microscope Control\Microscope control V1.0\Microscope Control\obj\Debug\Microscope Control.csproj.GenerateResource.Cache
+C:\Users\TOSHIBA\Documents\Archivos doctorado\2016-2\Programming\Microscope Control\Microscope control V1.0\Microscope Control\obj\Debug\Microscope Control.exe
+C:\Users\TOSHIBA\Documents\Archivos doctorado\2016-2\Programming\Microscope Control\Microscope control V1.0\Microscope Control\obj\Debug\Microscope Control.pdb
+C:\Users\TOSHIBA\Documents\Archivos doctorado\2016-2\Programming\Microscope Control\Microscope control V1.0\Microscope Control\obj\Debug\Microscope Control.csprojResolveAssemblyReference.cache
