@@ -64,7 +64,9 @@ namespace Microscope_Control
         byte payloadType = 0;                       // Stores the payload type from liveview stream
         string CamResponse = "";                    // Retrieves the camera response when any action is invoked
         string lvwURL = "";                         // Stores camera URL for liveview
-        bool timeout = false;
+        //bool timeout = false;
+        bool shutterFlag = false;
+        private static Object locker = new Object();
 
         // The following Events are related to the board managing and communication
 
@@ -98,7 +100,7 @@ namespace Microscope_Control
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            backgroundWorker1.RunWorkerAsync();
+            LiveviewBW.RunWorkerAsync();
             BConnectionCBox.Items.Add("Port selection");
             BConnectionCBox.SelectedIndex = 0;
         }
@@ -219,8 +221,8 @@ namespace Microscope_Control
                 lvwRequest.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
                 imgStream = lvwRequest.GetResponse().GetResponseStream();                   // Setup and get the request stream response
                 imgReader = new StreamReader(imgStream);
-                if (backgroundWorker1.IsBusy != true)
-                    backgroundWorker1.RunWorkerAsync();
+                if (LiveviewBW.IsBusy != true)
+                    LiveviewBW.RunWorkerAsync();
                 // Start liveview Timer (Send HTTP GET request)
                 guideChkBtn.Enabled = true;
             }
@@ -230,7 +232,7 @@ namespace Microscope_Control
                 FlagLvw = false;
                 CamResponse = SendRequest("stopLiveview", "");                  // Send action request to camera host to stop liveview
                 ConnectionTxt.AppendText(CamResponse + "\r\n");
-                backgroundWorker1.CancelAsync();
+                LiveviewBW.CancelAsync();
                 guideChkBtn.Enabled = false;
                 imgStream.Close();
                 imgReader.Close();
@@ -239,77 +241,77 @@ namespace Microscope_Control
 
         private void LiveviewTmr_Tick(object sender, EventArgs e)                           // Timer, refreshes liveview image
         {
-            {
-                using (var memstream = new MemoryStream())
-                {
-                    imgData = new List<byte>();
-                    buffer = new byte[520];
-                    bufferAux = new byte[4];
-                    payloadType = 0;
-                    imgSize = 0;
-                    frameNo = -1;
-                    paddingSize = 0;
+            //{
+            //    using (var memstream = new MemoryStream())
+            //    {
+            //        imgData = new List<byte>();
+            //        buffer = new byte[520];
+            //        bufferAux = new byte[4];
+            //        payloadType = 0;
+            //        imgSize = 0;
+            //        frameNo = -1;
+            //        paddingSize = 0;
 
-                    GetHeader:                                                          // Retrieves a byte(s) from the stream to check if it corresponds to Sony header construction
+            //        GetHeader:                                                          // Retrieves a byte(s) from the stream to check if it corresponds to Sony header construction
 
-                    // Common Header (8 Bytes)
-                    //buffer = new byte[520];
-                    imgReader.BaseStream.Read(buffer, 0, 1);                            // Seeks for start byte
-                    var start = buffer[0];
-                    if (start != 0xff)
-                        goto GetHeader;
+            //        // Common Header (8 Bytes)
+            //        //buffer = new byte[520];
+            //        imgReader.BaseStream.Read(buffer, 0, 1);                            // Seeks for start byte
+            //        var start = buffer[0];
+            //        if (start != 0xff)
+            //            goto GetHeader;
 
-                    //buffer = new byte[520];
-                    imgReader.BaseStream.Read(buffer, 0, 1);                            // Stores payload Type
-                    payloadType = (buffer[0]);
-                    if (!((payloadType == 1) || (payloadType == 2)))
-                        goto GetHeader;
+            //        //buffer = new byte[520];
+            //        imgReader.BaseStream.Read(buffer, 0, 1);                            // Stores payload Type
+            //        payloadType = (buffer[0]);
+            //        if (!((payloadType == 1) || (payloadType == 2)))
+            //            goto GetHeader;
 
-                    //buffer = new byte[520];
-                    imgReader.BaseStream.Read(buffer, 0, 2);                            // Stores Frame Number depending Payload type
-                    if (payloadType == 1)
-                        frameNo = BitConverter.ToUInt16(buffer, 0);
+            //        //buffer = new byte[520];
+            //        imgReader.BaseStream.Read(buffer, 0, 2);                            // Stores Frame Number depending Payload type
+            //        if (payloadType == 1)
+            //            frameNo = BitConverter.ToUInt16(buffer, 0);
 
-                    imgReader.BaseStream.Read(buffer, 0, 4);                            // Discards expected Time stamp
+            //        imgReader.BaseStream.Read(buffer, 0, 4);                            // Discards expected Time stamp
 
-                    // Payload header (128 bytes)
-                    //buffer = new byte[520];
-                    imgReader.BaseStream.Read(buffer, 0, 4);
-                    if (!((buffer[0] == 0x24) & (buffer[1] == 0x35) & (buffer[2] == 0x68) & (buffer[3] == 0x79)))
-                        goto GetHeader;                                                 // If the start code does not correspond to fixed code (0x24, 0x35, 0x68, 0x79), starts over
+            //        // Payload header (128 bytes)
+            //        //buffer = new byte[520];
+            //        imgReader.BaseStream.Read(buffer, 0, 4);
+            //        if (!((buffer[0] == 0x24) & (buffer[1] == 0x35) & (buffer[2] == 0x68) & (buffer[3] == 0x79)))
+            //            goto GetHeader;                                                 // If the start code does not correspond to fixed code (0x24, 0x35, 0x68, 0x79), starts over
 
-                    //bufferAux = new byte[4];
-                    imgReader.BaseStream.Read(bufferAux, 0, 4);
-                    paddingSize = bufferAux[3];
-                    bufferAux[3] = bufferAux[2];
-                    bufferAux[2] = bufferAux[1];
-                    bufferAux[1] = bufferAux[0];
-                    bufferAux[0] = 0;
-                    Array.Reverse(bufferAux);
-                    imgSize = BitConverter.ToInt32(bufferAux, 0);                       // Reads and translates Data stream size
+            //        //bufferAux = new byte[4];
+            //        imgReader.BaseStream.Read(bufferAux, 0, 4);
+            //        paddingSize = bufferAux[3];
+            //        bufferAux[3] = bufferAux[2];
+            //        bufferAux[2] = bufferAux[1];
+            //        bufferAux[1] = bufferAux[0];
+            //        bufferAux[0] = 0;
+            //        Array.Reverse(bufferAux);
+            //        imgSize = BitConverter.ToInt32(bufferAux, 0);                       // Reads and translates Data stream size
 
-                    if (payloadType == 1)                                               // Case JPEG data
-                    {
-                        imgReader.BaseStream.Read(buffer, 0, 120);
-                        while (imgData.Count < imgSize)
-                        {
-                            //buffer = new byte[520];
-                            imgReader.BaseStream.Read(buffer, 0, 1);
-                            imgData.Add(buffer[0]);
-                        }
-                    }
+            //        if (payloadType == 1)                                               // Case JPEG data
+            //        {
+            //            imgReader.BaseStream.Read(buffer, 0, 120);
+            //            while (imgData.Count < imgSize)
+            //            {
+            //                //buffer = new byte[520];
+            //                imgReader.BaseStream.Read(buffer, 0, 1);
+            //                imgData.Add(buffer[0]);
+            //            }
+            //        }
 
-                    //getEventTxt.AppendText("Image size: " + imgData.Count.ToString());
-                    MemoryStream stream = new MemoryStream(imgData.ToArray());
-                    BinaryReader reader = new BinaryReader(stream);
-                    Bitmap bmpImage = (Bitmap)Image.FromStream(stream);
+            //        //getEventTxt.AppendText("Image size: " + imgData.Count.ToString());
+            //        MemoryStream stream = new MemoryStream(imgData.ToArray());
+            //        BinaryReader reader = new BinaryReader(stream);
+            //        Bitmap bmpImage = (Bitmap)Image.FromStream(stream);
 
-                    if (ImgLiveview.Image != null)
-                        ImgLiveview.Image.Dispose();
+            //        if (ImgLiveview.Image != null)
+            //            ImgLiveview.Image.Dispose();
 
-                    ImgLiveview.Image = bmpImage;
-                }
-            }
+            //        ImgLiveview.Image = bmpImage;
+            //    }
+            //}
         }
 
         private void guideChkBtn_CheckedChanged(object sender, EventArgs e)                 // Visualize frozen image to use it as a guide in liveview
@@ -326,8 +328,7 @@ namespace Microscope_Control
             }
 
         }
-        private static Object locker = new Object();
-
+        
         private void guideRefreshBtn_Click(object sender, EventArgs e)                      // Loads image from live view to be frozen and displayed as a guide frame
         {
             ImgGuide.Location = new Point(0, 0);                                                    // Ensures the reference image frame is in place
@@ -350,17 +351,7 @@ namespace Microscope_Control
             tempG.DrawImage(transparentImg, Point.Empty);
             ImgGuide.Image = transparentImg;
         }
-
-        private void pictureBox3_LoadCompleted(object sender, AsyncCompletedEventArgs e)    // Waits for Loaded image to be saved
-        {
-            if (OnCapture)
-            {
-                BStateLbl.Text = (BStateLbl.Text + ("\nImage capture finished"));
-                onSave = true;
-                ManageFrames();
-            }
-        }
-
+        
         private string SendRequest(string action, string param)                             // Gives format to the action request, manages sending request and receiving response. Output: Response string
         {
             string responseF;
@@ -401,9 +392,202 @@ namespace Microscope_Control
             }
             return responseF;
         }
+
         private static void ThreadProc()
         {
             Thread.Sleep(20000);
+        }
+
+        private void LiveviewBW_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker bw = sender as BackgroundWorker;
+            try
+            {
+                while (bw.CancellationPending == false)
+                {
+                    using (var memstream = new MemoryStream())
+                    {
+                        imgData = new List<byte>();
+                        buffer = new byte[520];
+                        bufferAux = new byte[4];
+                        payloadType = 0;
+                        imgSize = 0;
+                        frameNo = -1;
+                        paddingSize = 0;
+
+                        GetHeader:                                                          // Retrieves a byte(s) from the stream to check if it corresponds to Sony header construction
+
+                        // Common Header (8 Bytes)
+                        //buffer = new byte[520];
+                        imgReader.BaseStream.Read(buffer, 0, 1);                            // Seeks for start byte
+                        var start = buffer[0];
+                        if (start != 0xff)
+                            goto GetHeader;
+
+                        //buffer = new byte[520];
+                        imgReader.BaseStream.Read(buffer, 0, 1);                            // Stores payload Type
+                        payloadType = (buffer[0]);
+                        if (!((payloadType == 1) || (payloadType == 2)))
+                            goto GetHeader;
+
+                        //buffer = new byte[520];
+                        imgReader.BaseStream.Read(buffer, 0, 2);                            // Stores Frame Number depending Payload type
+                        if (payloadType == 1)
+                            frameNo = BitConverter.ToUInt16(buffer, 0);
+
+                        imgReader.BaseStream.Read(buffer, 0, 4);                            // Discards expected Time stamp
+
+                        // Payload header (128 bytes)
+                        //buffer = new byte[520];
+                        imgReader.BaseStream.Read(buffer, 0, 4);
+                        if (!((buffer[0] == 0x24) & (buffer[1] == 0x35) & (buffer[2] == 0x68) & (buffer[3] == 0x79)))
+                            goto GetHeader;                                                 // If the start code does not correspond to fixed code (0x24, 0x35, 0x68, 0x79), starts over
+
+                        //bufferAux = new byte[4];
+                        imgReader.BaseStream.Read(bufferAux, 0, 4);
+                        paddingSize = bufferAux[3];
+                        bufferAux[3] = bufferAux[2];
+                        bufferAux[2] = bufferAux[1];
+                        bufferAux[1] = bufferAux[0];
+                        bufferAux[0] = 0;
+                        Array.Reverse(bufferAux);
+                        imgSize = BitConverter.ToInt32(bufferAux, 0);                       // Reads and translates Data stream size
+
+                        if (payloadType == 1)                                               // Case JPEG data
+                        {
+                            imgReader.BaseStream.Read(buffer, 0, 120);
+                            while (imgData.Count < imgSize)
+                            {
+                                //buffer = new byte[520];
+                                imgReader.BaseStream.Read(buffer, 0, 1);
+                                imgData.Add(buffer[0]);
+                            }
+                        }
+
+                        //getEventTxt.AppendText("Image size: " + imgData.Count.ToString());
+                        MemoryStream stream = new MemoryStream(imgData.ToArray());
+                        BinaryReader reader = new BinaryReader(stream);
+                        Bitmap bmpImage = (Bitmap)Image.FromStream(stream);
+
+                        if (ImgLiveview.Image != null)
+                            ImgLiveview.Image.Dispose();
+
+                        //ImgLiveview.Image = bmpImage;
+                        bw.ReportProgress(0, bmpImage);
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                ConnectionTxt.Text = ex.Message;
+            }
+            e.Cancel = true;
+        }
+
+        private void LiveviewBW_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            lock (locker)
+                ImgLiveview.Image = (Bitmap)e.UserState;
+        }
+
+        private void LiveviewBW_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Cancelled == true)
+            {
+                //resultLabel.Text = "Canceled!";
+            }
+            else if (e.Error != null)
+            {
+                //resultLabel.Text = "Error: " + e.Error.Message;
+            }
+            else
+            {
+                //resultLabel.Text = "Done!";
+            }
+        }
+
+        private void ShutterBW_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            WebClient imageClient = new WebClient();
+            onSave = true;
+            CamResponse = SendRequest("actTakePicture", "");
+            string imgURL = CamResponse.Substring(20).Split('\"').FirstOrDefault();
+            string name = "";
+            string path = "";
+            if (shutterFlag)
+            {
+                name = ("P" + picCount.ToString("D4") + ".jpg");
+                path = ("C:\\" + "Session" + BitConverter.ToString(session));
+                picCount += 1;
+            }
+            else
+            {
+                name = (("S") + BitConverter.ToString(session) + ("F") + myFrame.ToString("D3") + ("P") + myImg.ToString("D3") + ".jpg");
+                path = ("C:\\Observation\\Session" + BitConverter.ToString(session) + "\\Frame" + myFrame.ToString("D4"));
+            }
+            if (!Directory.Exists(path))
+            {
+                DirectoryInfo di = Directory.CreateDirectory(path);
+            }
+            worker.ReportProgress(10);
+            imageClient.DownloadFile(imgURL, path + "\\" + name);
+            //ImgAux.Image = Image.FromFile("C:\\Users\\TOSHIBA\\Documents\\Archivos doctorado\\2016-2\\Programming\\Microscope Control\\Microscope control V1.0\\microscope.gif");
+            //ImgAux.ImageLocation = imgURL;
+        }
+
+        private void ShutterBW_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            ;
+            if (shutterFlag)
+            {
+                BShutterBtn.Enabled = true;
+                shutterFlag = false;
+            }
+            else
+            {
+                ;
+                if (myFrame == TotalFrames)
+                {
+                    ;
+                    onMove = true;
+                    onSave = true;
+                    frameCount = TotalFrames;
+                    ManageFrames();
+                }
+                else
+                {
+                    if (!Busy)
+                    {
+                        Busy = true;
+                        MoveStage(Convert.ToInt32(BStepTxt.Text), 'Z');
+                    }
+
+                }
+            }
+
+            if (e.Cancelled == true)
+            {
+                //resultLabel.Text = "Canceled!";
+            }
+            else if (e.Error != null)
+            {
+                //resultLabel.Text = "Error: " + e.Error.Message;
+            }
+            else
+            {
+                //resultLabel.Text = "Done!";
+            }
+        }
+
+        private void ShutterBW_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            if (e.ProgressPercentage == 10)
+            {
+                // Ya tome la foto
+
+            }
         }
 
         // These events are provided for test purposes only Any release: please leave these as NOT VISIBLE
@@ -470,7 +654,17 @@ namespace Microscope_Control
             }
         }
 
-        //
+        private void pictureBox3_LoadCompleted(object sender, AsyncCompletedEventArgs e)    // Test image (Not loaded)
+        {
+            //if (OnCapture)
+            //{
+            //    BStateLbl.Text = (BStateLbl.Text + ("\nImage capture finished"));
+            //    onSave = true;
+            //    ManageFrames();
+            //}
+        }
+
+        //*****************************************************************************************
 
         private void comboBox1_DropDown(object sender, EventArgs e)                                     // Sniffs for serial ports connected to the computer (Arduino connects vias Serial)
         {
@@ -528,6 +722,8 @@ namespace Microscope_Control
 
         private void BShutterBtn_Click(object sender, EventArgs e)
         {
+            shutterFlag = true;
+            BShutterBtn.Enabled = false;
             ShutterBW.RunWorkerAsync();
         }
 
@@ -990,9 +1186,9 @@ namespace Microscope_Control
             TotalFrames = Convert.ToInt32(BCycleTxt.Text);
             TotalTime = Convert.ToInt32(BTimeTxt.Text) * 1000;
             IntervalTmr.Interval = TotalTime;
+            onStart = true;
 
             BStateLbl.Text = ("Sinchronizing Configuration...");
-            onStart = true;
             TxString = ("@" + Encoding.ASCII.GetString(session) + "V" + BStepTxt.Text + "s" + BCycleTxt.Text + "c" + BTimeTxt.Text + "t");
             serialPort1.WriteLine(TxString);
 
@@ -1052,44 +1248,46 @@ namespace Microscope_Control
 
         private void TakePictue()
         {
-            CamResponse = SendRequest("actTakePicture", "");
-            string imgURL = CamResponse.Substring(20).Split('\"').FirstOrDefault();
-            string TempPath = (pathSave + "\\Frame" + myFrame.ToString("D4") + "\\" + ("S") + BitConverter.ToString(session) + ("F") + myFrame.ToString("D4") + ("P") + myImg.ToString("D4") + ".jpg"); ;
-            //picCount += 1;
-            WebClient imageClient = new WebClient();
-            imageClient.DownloadFile(imgURL, TempPath);
-            //ImgAux.Image = Image.FromFile("C:\\Users\\TOSHIBA\\Documents\\Archivos doctorado\\2016-2\\Programming\\Microscope Control\\Microscope control V1.0\\microscope.gif");
-            //ImgAux.ImageLocation = imgURL;
+            //CamResponse = SendRequest("actTakePicture", "");
+            //string imgURL = CamResponse.Substring(20).Split('\"').FirstOrDefault();
+            //string TempPath = (pathSave + "\\Frame" + myFrame.ToString("D4") + "\\" + ("S") + BitConverter.ToString(session) + ("F") + myFrame.ToString("D4") + ("P") + myImg.ToString("D4") + ".jpg"); ;
+            ////picCount += 1;
+            //WebClient imageClient = new WebClient();
+            //imageClient.DownloadFile(imgURL, TempPath);
+            ////ImgAux.Image = Image.FromFile("C:\\Users\\TOSHIBA\\Documents\\Archivos doctorado\\2016-2\\Programming\\Microscope Control\\Microscope control V1.0\\microscope.gif");
+            ////ImgAux.ImageLocation = imgURL;
+
+            ShutterBW.RunWorkerAsync();
             onSave = true;
         }
 
         private void StartCapture()
         {
-            LiveviewTmr.Interval = 100;
+            //LiveviewTmr.Interval = 100;
             onStart = false;
             if (myFrame == 0)
             {
                 IntervalTmr.Enabled = true;
             }
-            Thread.Sleep(500);
+            //Thread.Sleep(500);
             TakePictue();
 
-            if (myFrame == TotalFrames)
-            {
-                onMove = true;
-                onSave = true;
-                frameCount = TotalFrames;
-                ManageFrames();
-            }
-            else
-            {
-                if (!Busy)
-                {
-                    Busy = true;
-                    MoveStage(Convert.ToInt32(BStepTxt.Text), 'Z');
-                }
+            //if (myFrame == TotalFrames)
+            //{
+            //    onMove = true;
+            //    onSave = true;
+            //    frameCount = TotalFrames;
+            //    ManageFrames();
+            //}
+            //else
+            //{
+            //    if (!Busy)
+            //    {
+            //        Busy = true;
+            //        MoveStage(Convert.ToInt32(BStepTxt.Text), 'Z');
+            //    }
 
-            }
+            //}
         }
 
         private void ManageFrames()
@@ -1112,15 +1310,15 @@ namespace Microscope_Control
                 }
                 else
                 {
-                    LiveviewTmr.Interval = 3;
+                    //LiveviewTmr.Interval = 3;
                     Busy = true;
-                    MoveStage(Convert.ToInt32(BStepTxt.Text) * TotalFrames, 'S');
                     onMove = false;
                     onSave = false;
                     OnCapture = false;
                     captureBtn.Enabled = false;
                     myImg += 1;
                     myFrame = 0;
+                    MoveStage(Convert.ToInt32(BStepTxt.Text) * TotalFrames, 'S');
                 }
             }
         }
@@ -1137,162 +1335,6 @@ namespace Microscope_Control
             {
                 StartCapture();
                 OnCapture = true;
-            }
-        }
-
-        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
-        {
-            BackgroundWorker bw = sender as BackgroundWorker;
-            try
-            {
-                while (bw.CancellationPending == false)
-                {
-                    using (var memstream = new MemoryStream())
-                    {
-                        imgData = new List<byte>();
-                        buffer = new byte[520];
-                        bufferAux = new byte[4];
-                        payloadType = 0;
-                        imgSize = 0;
-                        frameNo = -1;
-                        paddingSize = 0;
-
-                        GetHeader:                                                          // Retrieves a byte(s) from the stream to check if it corresponds to Sony header construction
-
-                        // Common Header (8 Bytes)
-                        //buffer = new byte[520];
-                        imgReader.BaseStream.Read(buffer, 0, 1);                            // Seeks for start byte
-                        var start = buffer[0];
-                        if (start != 0xff)
-                            goto GetHeader;
-
-                        //buffer = new byte[520];
-                        imgReader.BaseStream.Read(buffer, 0, 1);                            // Stores payload Type
-                        payloadType = (buffer[0]);
-                        if (!((payloadType == 1) || (payloadType == 2)))
-                            goto GetHeader;
-
-                        //buffer = new byte[520];
-                        imgReader.BaseStream.Read(buffer, 0, 2);                            // Stores Frame Number depending Payload type
-                        if (payloadType == 1)
-                            frameNo = BitConverter.ToUInt16(buffer, 0);
-
-                        imgReader.BaseStream.Read(buffer, 0, 4);                            // Discards expected Time stamp
-
-                        // Payload header (128 bytes)
-                        //buffer = new byte[520];
-                        imgReader.BaseStream.Read(buffer, 0, 4);
-                        if (!((buffer[0] == 0x24) & (buffer[1] == 0x35) & (buffer[2] == 0x68) & (buffer[3] == 0x79)))
-                            goto GetHeader;                                                 // If the start code does not correspond to fixed code (0x24, 0x35, 0x68, 0x79), starts over
-
-                        //bufferAux = new byte[4];
-                        imgReader.BaseStream.Read(bufferAux, 0, 4);
-                        paddingSize = bufferAux[3];
-                        bufferAux[3] = bufferAux[2];
-                        bufferAux[2] = bufferAux[1];
-                        bufferAux[1] = bufferAux[0];
-                        bufferAux[0] = 0;
-                        Array.Reverse(bufferAux);
-                        imgSize = BitConverter.ToInt32(bufferAux, 0);                       // Reads and translates Data stream size
-
-                        if (payloadType == 1)                                               // Case JPEG data
-                        {
-                            imgReader.BaseStream.Read(buffer, 0, 120);
-                            while (imgData.Count < imgSize)
-                            {
-                                //buffer = new byte[520];
-                                imgReader.BaseStream.Read(buffer, 0, 1);
-                                imgData.Add(buffer[0]);
-                            }
-                        }
-
-                        //getEventTxt.AppendText("Image size: " + imgData.Count.ToString());
-                        MemoryStream stream = new MemoryStream(imgData.ToArray());
-                        BinaryReader reader = new BinaryReader(stream);
-                        Bitmap bmpImage = (Bitmap)Image.FromStream(stream);
-
-                        if (ImgLiveview.Image != null)
-                            ImgLiveview.Image.Dispose();
-
-                        //ImgLiveview.Image = bmpImage;
-                        bw.ReportProgress(0, bmpImage);
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-
-            }
-            e.Cancel = true;
-        }
-
-        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            lock (locker)
-                ImgLiveview.Image = (Bitmap)e.UserState;
-        }
-
-        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            if (e.Cancelled == true)
-            {
-                //resultLabel.Text = "Canceled!";
-            }
-            else if (e.Error != null)
-            {
-                //resultLabel.Text = "Error: " + e.Error.Message;
-            }
-            else
-            {
-                //resultLabel.Text = "Done!";
-            }
-        }
-
-        private void ShutterBW_DoWork(object sender, DoWorkEventArgs e)
-        {
-            BackgroundWorker worker = sender as BackgroundWorker;
-            CamResponse = SendRequest("actTakePicture", "");
-            string imgURL = CamResponse.Substring(20).Split('\"').FirstOrDefault();
-            string name = ("Session" + BitConverter.ToString(session));
-            string name2 = ("P" + picCount.ToString("D4"));
-            string path = ("C:\\" + name);
-            picCount += 1;
-            WebClient imageClient = new WebClient();
-            if (!Directory.Exists(path))
-            {
-                DirectoryInfo di = Directory.CreateDirectory(path);
-            }
-
-            worker.ReportProgress(10);
-
-            imageClient.DownloadFile(imgURL, path + "\\" + name + name2 + ".jpg");
-            //ImgAux.Image = Image.FromFile("C:\\Users\\TOSHIBA\\Documents\\Archivos doctorado\\2016-2\\Programming\\Microscope Control\\Microscope control V1.0\\microscope.gif");
-            //ImgAux.ImageLocation = imgURL;
-        }
-
-        private void ShutterBW_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            if (e.Cancelled == true)
-            {
-                //resultLabel.Text = "Canceled!";
-            }
-            else if (e.Error != null)
-            {
-                //resultLabel.Text = "Error: " + e.Error.Message;
-            }
-            else
-            {
-                //resultLabel.Text = "Done!";
-            }
-        }
-
-        private void ShutterBW_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            if (e.ProgressPercentage == 10)
-            {
-                // Ya tome la foto
-
             }
         }
     }

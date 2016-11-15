@@ -79,7 +79,7 @@
             this.ManageChkBtn = new System.Windows.Forms.CheckBox();
             this.captureBtn = new System.Windows.Forms.Button();
             this.IntervalTmr = new System.Windows.Forms.Timer(this.components);
-            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.LiveviewBW = new System.ComponentModel.BackgroundWorker();
             this.ShutterBW = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.ImgLiveview)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgGuide)).BeginInit();
@@ -596,13 +596,13 @@
             // 
             this.IntervalTmr.Tick += new System.EventHandler(this.IntervalTmr_Tick);
             // 
-            // backgroundWorker1
+            // LiveviewBW
             // 
-            this.backgroundWorker1.WorkerReportsProgress = true;
-            this.backgroundWorker1.WorkerSupportsCancellation = true;
-            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
-            this.backgroundWorker1.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker1_ProgressChanged);
-            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
+            this.LiveviewBW.WorkerReportsProgress = true;
+            this.LiveviewBW.WorkerSupportsCancellation = true;
+            this.LiveviewBW.DoWork += new System.ComponentModel.DoWorkEventHandler(this.LiveviewBW_DoWork);
+            this.LiveviewBW.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.LiveviewBW_ProgressChanged);
+            this.LiveviewBW.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.LiveviewBW_RunWorkerCompleted);
             // 
             // ShutterBW
             // 
@@ -730,7 +730,7 @@
         private System.Windows.Forms.CheckBox ManageChkBtn;
         private System.Windows.Forms.Button captureBtn;
         private System.Windows.Forms.Timer IntervalTmr;
-        private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.ComponentModel.BackgroundWorker LiveviewBW;
         private System.ComponentModel.BackgroundWorker ShutterBW;
     }
 }
