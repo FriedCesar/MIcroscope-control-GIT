@@ -94,7 +94,6 @@ namespace Microscope_Control
             InitializeComponent();
             ImgGuide.BackColor = Color.Transparent;
             ImgGuide.Parent = ImgLiveview;
-            ImgGuide.Location = new Point(71, 0);
         }
 
         private void Form1_Load(object sender, EventArgs e)

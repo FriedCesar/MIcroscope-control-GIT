@@ -213,9 +213,9 @@
             // 
             this.ImgLogo.BackColor = System.Drawing.Color.Transparent;
             this.ImgLogo.Image = ((System.Drawing.Image)(resources.GetObject("ImgLogo.Image")));
-            this.ImgLogo.Location = new System.Drawing.Point(168, 33);
+            this.ImgLogo.Location = new System.Drawing.Point(131, 33);
             this.ImgLogo.Name = "ImgLogo";
-            this.ImgLogo.Size = new System.Drawing.Size(750, 510);
+            this.ImgLogo.Size = new System.Drawing.Size(680, 510);
             this.ImgLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.ImgLogo.TabIndex = 12;
             this.ImgLogo.TabStop = false;
