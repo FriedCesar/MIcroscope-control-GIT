@@ -79,6 +79,8 @@
             this.ManageChkBtn = new System.Windows.Forms.CheckBox();
             this.captureBtn = new System.Windows.Forms.Button();
             this.IntervalTmr = new System.Windows.Forms.Timer(this.components);
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.ShutterBW = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.ImgLiveview)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgGuide)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgAux)).BeginInit();
@@ -90,7 +92,7 @@
             // 
             // TestBtn
             // 
-            this.TestBtn.Location = new System.Drawing.Point(12, 136);
+            this.TestBtn.Location = new System.Drawing.Point(26, 515);
             this.TestBtn.Name = "TestBtn";
             this.TestBtn.Size = new System.Drawing.Size(75, 23);
             this.TestBtn.TabIndex = 0;
@@ -101,7 +103,7 @@
             // ImgLiveview
             // 
             this.ImgLiveview.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.ImgLiveview.Location = new System.Drawing.Point(93, 12);
+            this.ImgLiveview.Location = new System.Drawing.Point(131, 33);
             this.ImgLiveview.Name = "ImgLiveview";
             this.ImgLiveview.Size = new System.Drawing.Size(680, 510);
             this.ImgLiveview.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -116,7 +118,7 @@
             // 
             // ConnectBtn
             // 
-            this.ConnectBtn.Location = new System.Drawing.Point(12, 12);
+            this.ConnectBtn.Location = new System.Drawing.Point(26, 391);
             this.ConnectBtn.Name = "ConnectBtn";
             this.ConnectBtn.Size = new System.Drawing.Size(75, 34);
             this.ConnectBtn.TabIndex = 2;
@@ -127,11 +129,12 @@
             // ConnectionTxt
             // 
             this.ConnectionTxt.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.ConnectionTxt.Location = new System.Drawing.Point(93, 0);
+            this.ConnectionTxt.Enabled = false;
+            this.ConnectionTxt.Location = new System.Drawing.Point(131, 33);
             this.ConnectionTxt.Multiline = true;
             this.ConnectionTxt.Name = "ConnectionTxt";
             this.ConnectionTxt.ReadOnly = true;
-            this.ConnectionTxt.Size = new System.Drawing.Size(166, 182);
+            this.ConnectionTxt.Size = new System.Drawing.Size(163, 184);
             this.ConnectionTxt.TabIndex = 4;
             this.ConnectionTxt.Text = "Camera Connection Status";
             this.ConnectionTxt.Visible = false;
@@ -139,7 +142,7 @@
             // LiveviewBtn
             // 
             this.LiveviewBtn.Enabled = false;
-            this.LiveviewBtn.Location = new System.Drawing.Point(12, 52);
+            this.LiveviewBtn.Location = new System.Drawing.Point(26, 431);
             this.LiveviewBtn.Name = "LiveviewBtn";
             this.LiveviewBtn.Size = new System.Drawing.Size(75, 23);
             this.LiveviewBtn.TabIndex = 5;
@@ -149,7 +152,7 @@
             // 
             // getEventBtn
             // 
-            this.getEventBtn.Location = new System.Drawing.Point(12, 81);
+            this.getEventBtn.Location = new System.Drawing.Point(26, 460);
             this.getEventBtn.Name = "getEventBtn";
             this.getEventBtn.Size = new System.Drawing.Size(75, 23);
             this.getEventBtn.TabIndex = 6;
@@ -160,7 +163,7 @@
             // 
             // getEventTxt
             // 
-            this.getEventTxt.Location = new System.Drawing.Point(12, 110);
+            this.getEventTxt.Location = new System.Drawing.Point(26, 489);
             this.getEventTxt.Name = "getEventTxt";
             this.getEventTxt.ReadOnly = true;
             this.getEventTxt.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -176,7 +179,7 @@
             // 
             this.ImgGuide.BackColor = System.Drawing.Color.Transparent;
             this.ImgGuide.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.ImgGuide.Location = new System.Drawing.Point(93, 12);
+            this.ImgGuide.Location = new System.Drawing.Point(131, 33);
             this.ImgGuide.Name = "ImgGuide";
             this.ImgGuide.Size = new System.Drawing.Size(680, 510);
             this.ImgGuide.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -188,7 +191,7 @@
             // 
             this.guideChkBtn.AutoSize = true;
             this.guideChkBtn.Enabled = false;
-            this.guideChkBtn.Location = new System.Drawing.Point(12, 165);
+            this.guideChkBtn.Location = new System.Drawing.Point(25, 540);
             this.guideChkBtn.Name = "guideChkBtn";
             this.guideChkBtn.Size = new System.Drawing.Size(54, 17);
             this.guideChkBtn.TabIndex = 10;
@@ -198,7 +201,7 @@
             // 
             // ImgAux
             // 
-            this.ImgAux.Location = new System.Drawing.Point(976, 275);
+            this.ImgAux.Location = new System.Drawing.Point(1014, 383);
             this.ImgAux.Name = "ImgAux";
             this.ImgAux.Size = new System.Drawing.Size(160, 120);
             this.ImgAux.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -210,7 +213,7 @@
             // 
             this.ImgLogo.BackColor = System.Drawing.Color.Transparent;
             this.ImgLogo.Image = ((System.Drawing.Image)(resources.GetObject("ImgLogo.Image")));
-            this.ImgLogo.Location = new System.Drawing.Point(130, 12);
+            this.ImgLogo.Location = new System.Drawing.Point(168, 33);
             this.ImgLogo.Name = "ImgLogo";
             this.ImgLogo.Size = new System.Drawing.Size(750, 510);
             this.ImgLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -225,7 +228,7 @@
             // 
             this.guideRefreshBtn.Enabled = false;
             this.guideRefreshBtn.Image = ((System.Drawing.Image)(resources.GetObject("guideRefreshBtn.Image")));
-            this.guideRefreshBtn.Location = new System.Drawing.Point(64, 161);
+            this.guideRefreshBtn.Location = new System.Drawing.Point(78, 536);
             this.guideRefreshBtn.Name = "guideRefreshBtn";
             this.guideRefreshBtn.Size = new System.Drawing.Size(23, 23);
             this.guideRefreshBtn.TabIndex = 14;
@@ -247,7 +250,7 @@
             // 
             this.BStepMaxLbl.AutoSize = true;
             this.BStepMaxLbl.Enabled = false;
-            this.BStepMaxLbl.Location = new System.Drawing.Point(1167, 520);
+            this.BStepMaxLbl.Location = new System.Drawing.Point(1203, 525);
             this.BStepMaxLbl.Name = "BStepMaxLbl";
             this.BStepMaxLbl.Size = new System.Drawing.Size(51, 13);
             this.BStepMaxLbl.TabIndex = 56;
@@ -257,7 +260,7 @@
             // 
             this.BStepMax2Btn.Enabled = false;
             this.BStepMax2Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BStepMax2Btn.Location = new System.Drawing.Point(1224, 515);
+            this.BStepMax2Btn.Location = new System.Drawing.Point(1260, 520);
             this.BStepMax2Btn.Name = "BStepMax2Btn";
             this.BStepMax2Btn.Size = new System.Drawing.Size(22, 23);
             this.BStepMax2Btn.TabIndex = 55;
@@ -269,7 +272,7 @@
             // 
             this.BStepMax1Btn.Enabled = false;
             this.BStepMax1Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BStepMax1Btn.Location = new System.Drawing.Point(1139, 515);
+            this.BStepMax1Btn.Location = new System.Drawing.Point(1175, 520);
             this.BStepMax1Btn.Name = "BStepMax1Btn";
             this.BStepMax1Btn.Size = new System.Drawing.Size(22, 23);
             this.BStepMax1Btn.TabIndex = 54;
@@ -281,7 +284,7 @@
             // 
             this.BStepTBLbl.AutoSize = true;
             this.BStepTBLbl.Enabled = false;
-            this.BStepTBLbl.Location = new System.Drawing.Point(796, 506);
+            this.BStepTBLbl.Location = new System.Drawing.Point(832, 511);
             this.BStepTBLbl.Name = "BStepTBLbl";
             this.BStepTBLbl.Size = new System.Drawing.Size(32, 13);
             this.BStepTBLbl.TabIndex = 53;
@@ -291,7 +294,7 @@
             // 
             this.BStateLbl.AutoSize = true;
             this.BStateLbl.Enabled = false;
-            this.BStateLbl.Location = new System.Drawing.Point(1087, 91);
+            this.BStateLbl.Location = new System.Drawing.Point(1125, 199);
             this.BStateLbl.Name = "BStateLbl";
             this.BStateLbl.Size = new System.Drawing.Size(37, 13);
             this.BStateLbl.TabIndex = 51;
@@ -300,7 +303,7 @@
             // BSaveBtn
             // 
             this.BSaveBtn.Enabled = false;
-            this.BSaveBtn.Location = new System.Drawing.Point(1009, 152);
+            this.BSaveBtn.Location = new System.Drawing.Point(1047, 260);
             this.BSaveBtn.Name = "BSaveBtn";
             this.BSaveBtn.Size = new System.Drawing.Size(75, 23);
             this.BSaveBtn.TabIndex = 45;
@@ -311,7 +314,7 @@
             // BStepSetBtn
             // 
             this.BStepSetBtn.Enabled = false;
-            this.BStepSetBtn.Location = new System.Drawing.Point(1171, 182);
+            this.BStepSetBtn.Location = new System.Drawing.Point(1209, 290);
             this.BStepSetBtn.Name = "BStepSetBtn";
             this.BStepSetBtn.Size = new System.Drawing.Size(75, 23);
             this.BStepSetBtn.TabIndex = 42;
@@ -322,7 +325,7 @@
             // BStepMaxBtn
             // 
             this.BStepMaxBtn.Enabled = false;
-            this.BStepMaxBtn.Location = new System.Drawing.Point(1090, 182);
+            this.BStepMaxBtn.Location = new System.Drawing.Point(1128, 290);
             this.BStepMaxBtn.Name = "BStepMaxBtn";
             this.BStepMaxBtn.Size = new System.Drawing.Size(75, 23);
             this.BStepMaxBtn.TabIndex = 43;
@@ -333,7 +336,7 @@
             // BStepMinBtn
             // 
             this.BStepMinBtn.Enabled = false;
-            this.BStepMinBtn.Location = new System.Drawing.Point(1009, 182);
+            this.BStepMinBtn.Location = new System.Drawing.Point(1047, 290);
             this.BStepMinBtn.Name = "BStepMinBtn";
             this.BStepMinBtn.Size = new System.Drawing.Size(75, 23);
             this.BStepMinBtn.TabIndex = 41;
@@ -345,7 +348,7 @@
             // 
             this.BCycleCountLbl.AutoSize = true;
             this.BCycleCountLbl.Enabled = false;
-            this.BCycleCountLbl.Location = new System.Drawing.Point(1040, 216);
+            this.BCycleCountLbl.Location = new System.Drawing.Point(1078, 324);
             this.BCycleCountLbl.Name = "BCycleCountLbl";
             this.BCycleCountLbl.Size = new System.Drawing.Size(13, 13);
             this.BCycleCountLbl.TabIndex = 52;
@@ -355,7 +358,7 @@
             // 
             this.BTimeLbl.AutoSize = true;
             this.BTimeLbl.Enabled = false;
-            this.BTimeLbl.Location = new System.Drawing.Point(899, 244);
+            this.BTimeLbl.Location = new System.Drawing.Point(934, 352);
             this.BTimeLbl.Name = "BTimeLbl";
             this.BTimeLbl.Size = new System.Drawing.Size(30, 13);
             this.BTimeLbl.TabIndex = 50;
@@ -364,7 +367,7 @@
             // BTimeTxt
             // 
             this.BTimeTxt.Enabled = false;
-            this.BTimeTxt.Location = new System.Drawing.Point(935, 240);
+            this.BTimeTxt.Location = new System.Drawing.Point(973, 348);
             this.BTimeTxt.Name = "BTimeTxt";
             this.BTimeTxt.Size = new System.Drawing.Size(68, 20);
             this.BTimeTxt.TabIndex = 39;
@@ -373,7 +376,7 @@
             // BCycleSetBtn
             // 
             this.BCycleSetBtn.Enabled = false;
-            this.BCycleSetBtn.Location = new System.Drawing.Point(1090, 210);
+            this.BCycleSetBtn.Location = new System.Drawing.Point(1128, 318);
             this.BCycleSetBtn.Name = "BCycleSetBtn";
             this.BCycleSetBtn.Size = new System.Drawing.Size(75, 23);
             this.BCycleSetBtn.TabIndex = 46;
@@ -385,7 +388,7 @@
             // 
             this.BCycleLbl.AutoSize = true;
             this.BCycleLbl.Enabled = false;
-            this.BCycleLbl.Location = new System.Drawing.Point(899, 216);
+            this.BCycleLbl.Location = new System.Drawing.Point(934, 324);
             this.BCycleLbl.Name = "BCycleLbl";
             this.BCycleLbl.Size = new System.Drawing.Size(33, 13);
             this.BCycleLbl.TabIndex = 49;
@@ -395,7 +398,7 @@
             // 
             this.BCycle2Btn.Enabled = false;
             this.BCycle2Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BCycle2Btn.Location = new System.Drawing.Point(1062, 210);
+            this.BCycle2Btn.Location = new System.Drawing.Point(1100, 318);
             this.BCycle2Btn.Name = "BCycle2Btn";
             this.BCycle2Btn.Size = new System.Drawing.Size(22, 23);
             this.BCycle2Btn.TabIndex = 44;
@@ -407,7 +410,7 @@
             // 
             this.BStepLbl.AutoSize = true;
             this.BStepLbl.Enabled = false;
-            this.BStepLbl.Location = new System.Drawing.Point(899, 187);
+            this.BStepLbl.Location = new System.Drawing.Point(934, 296);
             this.BStepLbl.Name = "BStepLbl";
             this.BStepLbl.Size = new System.Drawing.Size(29, 13);
             this.BStepLbl.TabIndex = 48;
@@ -416,7 +419,7 @@
             // BCycleTxt
             // 
             this.BCycleTxt.Enabled = false;
-            this.BCycleTxt.Location = new System.Drawing.Point(935, 213);
+            this.BCycleTxt.Location = new System.Drawing.Point(973, 321);
             this.BCycleTxt.Name = "BCycleTxt";
             this.BCycleTxt.Size = new System.Drawing.Size(68, 20);
             this.BCycleTxt.TabIndex = 38;
@@ -425,7 +428,7 @@
             // BStepTxt
             // 
             this.BStepTxt.Enabled = false;
-            this.BStepTxt.Location = new System.Drawing.Point(935, 184);
+            this.BStepTxt.Location = new System.Drawing.Point(973, 292);
             this.BStepTxt.Name = "BStepTxt";
             this.BStepTxt.Size = new System.Drawing.Size(68, 20);
             this.BStepTxt.TabIndex = 37;
@@ -434,7 +437,7 @@
             // BStepTB
             // 
             this.BStepTB.Enabled = false;
-            this.BStepTB.Location = new System.Drawing.Point(803, 544);
+            this.BStepTB.Location = new System.Drawing.Point(839, 549);
             this.BStepTB.Maximum = 100;
             this.BStepTB.Name = "BStepTB";
             this.BStepTB.Size = new System.Drawing.Size(480, 45);
@@ -445,7 +448,7 @@
             // 
             this.BCycle1Btn.Enabled = false;
             this.BCycle1Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BCycle1Btn.Location = new System.Drawing.Point(1009, 210);
+            this.BCycle1Btn.Location = new System.Drawing.Point(1047, 318);
             this.BCycle1Btn.Name = "BCycle1Btn";
             this.BCycle1Btn.Size = new System.Drawing.Size(22, 23);
             this.BCycle1Btn.TabIndex = 47;
@@ -456,7 +459,7 @@
             // BConnectBtn
             // 
             this.BConnectBtn.Enabled = false;
-            this.BConnectBtn.Location = new System.Drawing.Point(928, 136);
+            this.BConnectBtn.Location = new System.Drawing.Point(966, 244);
             this.BConnectBtn.Name = "BConnectBtn";
             this.BConnectBtn.Size = new System.Drawing.Size(75, 39);
             this.BConnectBtn.TabIndex = 36;
@@ -467,7 +470,7 @@
             // BConnectionCBox
             // 
             this.BConnectionCBox.FormattingEnabled = true;
-            this.BConnectionCBox.Location = new System.Drawing.Point(801, 137);
+            this.BConnectionCBox.Location = new System.Drawing.Point(839, 245);
             this.BConnectionCBox.Name = "BConnectionCBox";
             this.BConnectionCBox.Size = new System.Drawing.Size(121, 21);
             this.BConnectionCBox.TabIndex = 13;
@@ -478,7 +481,7 @@
             // 
             this.BSpeedTBLbl.AutoSize = true;
             this.BSpeedTBLbl.Enabled = false;
-            this.BSpeedTBLbl.Location = new System.Drawing.Point(796, 385);
+            this.BSpeedTBLbl.Location = new System.Drawing.Point(832, 604);
             this.BSpeedTBLbl.Name = "BSpeedTBLbl";
             this.BSpeedTBLbl.Size = new System.Drawing.Size(38, 13);
             this.BSpeedTBLbl.TabIndex = 64;
@@ -487,7 +490,7 @@
             // BSpeedTB
             // 
             this.BSpeedTB.Enabled = false;
-            this.BSpeedTB.Location = new System.Drawing.Point(803, 427);
+            this.BSpeedTB.Location = new System.Drawing.Point(839, 646);
             this.BSpeedTB.Maximum = 100;
             this.BSpeedTB.Minimum = 1;
             this.BSpeedTB.Name = "BSpeedTB";
@@ -507,6 +510,7 @@
             this.wifiCameraRB.TabStop = true;
             this.wifiCameraRB.Text = "Sony DSC-QX10";
             this.wifiCameraRB.UseVisualStyleBackColor = true;
+            this.wifiCameraRB.Visible = false;
             // 
             // IRCameraRB
             // 
@@ -517,13 +521,14 @@
             this.IRCameraRB.TabIndex = 67;
             this.IRCameraRB.Text = "Nikon IR Shutter";
             this.IRCameraRB.UseVisualStyleBackColor = true;
+            this.IRCameraRB.Visible = false;
             // 
             // ShutterGB
             // 
             this.ShutterGB.Controls.Add(this.BShutterBtn);
             this.ShutterGB.Controls.Add(this.wifiCameraRB);
             this.ShutterGB.Controls.Add(this.IRCameraRB);
-            this.ShutterGB.Location = new System.Drawing.Point(1139, 268);
+            this.ShutterGB.Location = new System.Drawing.Point(1177, 376);
             this.ShutterGB.Name = "ShutterGB";
             this.ShutterGB.Size = new System.Drawing.Size(130, 130);
             this.ShutterGB.TabIndex = 69;
@@ -533,7 +538,7 @@
             // 
             this.uStepChkBtn.AutoSize = true;
             this.uStepChkBtn.Enabled = false;
-            this.uStepChkBtn.Location = new System.Drawing.Point(801, 275);
+            this.uStepChkBtn.Location = new System.Drawing.Point(839, 383);
             this.uStepChkBtn.Name = "uStepChkBtn";
             this.uStepChkBtn.Size = new System.Drawing.Size(97, 17);
             this.uStepChkBtn.TabIndex = 70;
@@ -545,7 +550,7 @@
             // 
             this.reverseChkBtn.AutoSize = true;
             this.reverseChkBtn.Enabled = false;
-            this.reverseChkBtn.Location = new System.Drawing.Point(801, 299);
+            this.reverseChkBtn.Location = new System.Drawing.Point(839, 407);
             this.reverseChkBtn.Name = "reverseChkBtn";
             this.reverseChkBtn.Size = new System.Drawing.Size(109, 17);
             this.reverseChkBtn.TabIndex = 71;
@@ -556,9 +561,9 @@
             // StartBtn
             // 
             this.StartBtn.Enabled = false;
-            this.StartBtn.Location = new System.Drawing.Point(64, 596);
+            this.StartBtn.Location = new System.Drawing.Point(1128, 33);
             this.StartBtn.Name = "StartBtn";
-            this.StartBtn.Size = new System.Drawing.Size(110, 58);
+            this.StartBtn.Size = new System.Drawing.Size(110, 46);
             this.StartBtn.TabIndex = 72;
             this.StartBtn.Text = "START";
             this.StartBtn.UseVisualStyleBackColor = true;
@@ -568,7 +573,7 @@
             // 
             this.ManageChkBtn.AutoSize = true;
             this.ManageChkBtn.Enabled = false;
-            this.ManageChkBtn.Location = new System.Drawing.Point(180, 625);
+            this.ManageChkBtn.Location = new System.Drawing.Point(1128, 114);
             this.ManageChkBtn.Name = "ManageChkBtn";
             this.ManageChkBtn.Size = new System.Drawing.Size(124, 17);
             this.ManageChkBtn.TabIndex = 73;
@@ -579,9 +584,9 @@
             // captureBtn
             // 
             this.captureBtn.Enabled = false;
-            this.captureBtn.Location = new System.Drawing.Point(181, 596);
+            this.captureBtn.Location = new System.Drawing.Point(1128, 85);
             this.captureBtn.Name = "captureBtn";
-            this.captureBtn.Size = new System.Drawing.Size(75, 23);
+            this.captureBtn.Size = new System.Drawing.Size(110, 23);
             this.captureBtn.TabIndex = 74;
             this.captureBtn.Text = "Capture";
             this.captureBtn.UseVisualStyleBackColor = true;
@@ -591,12 +596,28 @@
             // 
             this.IntervalTmr.Tick += new System.EventHandler(this.IntervalTmr_Tick);
             // 
+            // backgroundWorker1
+            // 
+            this.backgroundWorker1.WorkerReportsProgress = true;
+            this.backgroundWorker1.WorkerSupportsCancellation = true;
+            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
+            this.backgroundWorker1.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker1_ProgressChanged);
+            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
+            // 
+            // ShutterBW
+            // 
+            this.ShutterBW.WorkerReportsProgress = true;
+            this.ShutterBW.WorkerSupportsCancellation = true;
+            this.ShutterBW.DoWork += new System.ComponentModel.DoWorkEventHandler(this.ShutterBW_DoWork);
+            this.ShutterBW.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.ShutterBW_ProgressChanged);
+            this.ShutterBW.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.ShutterBW_RunWorkerCompleted);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(1302, 707);
+            this.ClientSize = new System.Drawing.Size(1350, 729);
             this.Controls.Add(this.captureBtn);
             this.Controls.Add(this.ManageChkBtn);
             this.Controls.Add(this.StartBtn);
@@ -709,6 +730,8 @@
         private System.Windows.Forms.CheckBox ManageChkBtn;
         private System.Windows.Forms.Button captureBtn;
         private System.Windows.Forms.Timer IntervalTmr;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.ComponentModel.BackgroundWorker ShutterBW;
     }
 }
 

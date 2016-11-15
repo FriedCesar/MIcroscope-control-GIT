@@ -9,13 +9,14 @@
 // This program is a heritage from Calibration MMS
 // Program designed to be connected with an ARDUINO MEGA
 // Designed to be connected with a Sony DSC-QX10 camera (It uses the Sony's Remote Camera API SDK; small changes can be implemented to extend range)
-// As it's predecessor, Option to connect a remote ID shutter is left
+// 
 // 
 // Notes:
 //          Camera MUST be connected to PC before attempting to connect to the program (This program lacks a discovery device method for the camera)
 //          Version still as a prototype, Be careful not to overload the programm with orders (Be gentle)
 //          Bugs might be present, this program has not been thoughtfully tested
 //          This program is designed to work altogether with an ARDUINO board, thus, the ARDUINO code for the used board is necessary
+//          Unlike the predecessor, no IR shutter is anabled (YET)
 //
 //
 // Camera Remote API by Sony
@@ -31,6 +32,7 @@ using System.Drawing;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
+using System.Media;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -43,29 +45,6 @@ namespace Microscope_Control
 {
     public partial class Form1 : Form
     {
-        public Form1()
-        {
-            InitializeComponent();
-            ImgGuide.BackColor = Color.Transparent;
-            ImgGuide.Parent = ImgLiveview;
-            ImgGuide.Location = new Point(71, 0);
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            BConnectionCBox.Items.Add("Port selection");
-            BConnectionCBox.SelectedIndex = 0;
-        }
-
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)               // On close, zoom camera out, disconnect board
-        {
-            if (CamConStatus)
-                CamResponse = SendRequest("actZoom", "\"out\",\"start\"");
-            if (serialPort1.IsOpen == true)
-            {
-                Invoke(new EventHandler(Disconnect));
-            }
-        }
 
         // The following Events are related to the camera behavior
 
@@ -85,6 +64,59 @@ namespace Microscope_Control
         byte payloadType = 0;                       // Stores the payload type from liveview stream
         string CamResponse = "";                    // Retrieves the camera response when any action is invoked
         string lvwURL = "";                         // Stores camera URL for liveview
+        bool timeout = false;
+
+        // The following Events are related to the board managing and communication
+
+        // Type definition of Stage related variables
+
+
+        Random rnd = new Random();                          // Random session iniciator
+        byte[] session;                                     // Byte session identifier
+        byte[] sessionRx;                                   // Byte session echo
+        byte[] pos1;
+        //byte[] pos2;
+        //byte[] pos3;
+        bool PortSel = false;                               // Retrieves information of board connection
+        bool ConSuc = false;                                // Succesful connection flag
+        bool Busy = false;                                  // Activity monitoring flag
+        string TxString;                                    // Data transmision string (Send this)
+        string RxString;                                    // Data received string
+        int conTO = 0;                                      // Timeout connection by attempts
+        int Pos = 0;                                        // Position verifier
+        int PosRef = 0;                                     // Position reference
+        int Cycle = 0;                                      // Cycle verifier
+        int picCount = 0;
+
+
+        public Form1()
+        {
+            InitializeComponent();
+            ImgGuide.BackColor = Color.Transparent;
+            ImgGuide.Parent = ImgLiveview;
+            ImgGuide.Location = new Point(71, 0);
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            backgroundWorker1.RunWorkerAsync();
+            BConnectionCBox.Items.Add("Port selection");
+            BConnectionCBox.SelectedIndex = 0;
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)               // On close, zoom camera out, disconnect board
+        {
+            if (CamConStatus)
+                CamResponse = SendRequest("actZoom", "\"out\",\"start\"");
+            if (serialPort1.IsOpen == true)
+            {
+                Invoke(new EventHandler(Disconnect));
+            }
+        }
+
+
+        // The following code is (Mostly) related to the managing of the Camera
+
 
         private void ConnectBtn_Click(object sender, EventArgs e)                           // Manages the discovery routine to connect with camera DSC-QX10 (Must be connected to PC WiFi)
         {
@@ -92,25 +124,27 @@ namespace Microscope_Control
             {
                 ConnectionTxt.Visible = true;
                 ConnectBtn.Enabled = false;
-                Thread.Sleep(200);
+                //Thread.Sleep(200);
 
                 // Setup Client/Host Endpoints and communication socket
                 IPEndPoint LocalEndPoint = new IPEndPoint(IPAddress.Any, 60000);                                        // Creates Endpoint to connect with system client
                 IPEndPoint MulticastEndPoint = new IPEndPoint(IPAddress.Parse("239.255.255.250"), 1900);                // Creates Endpoint to connect with camera host (Multicast messages reserved address, Sony SDK)
                 Socket UdpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);          // Creates Socket for managing network communication
                 UdpSocket.Bind(LocalEndPoint);                                                                          // Asociates Local socket to external host (Camera)
-                ConnectionTxt.AppendText("\r\nUDP-Socket setup done...\r\n");
+                ConnectionTxt.Text = ("Status\r\nUDP-Socket setup finished...\r\n");
 
                 // Sends discovery request to camera host (SSDP M-SEARCH)
                 string SearchString = "M-SEARCH * HTTP/1.1\r\nHOST:239.255.255.250:1900\r\nMAN:\"ssdp:discover\"\r\nMX:2\r\nST:urn:schemas-sony-com:service:ScalarWebAPI:1\r\n\r\n";
                 // SSDP M-SEARCH request (SONY SDK) string
                 UdpSocket.SendTo(Encoding.UTF8.GetBytes(SearchString), SocketFlags.None, MulticastEndPoint);            // Sends M-SEARCH request (8-bit Unicode) UNICAST
-                ConnectionTxt.AppendText("M-Search sent...\r\n");
+                ConnectionTxt.AppendText("M-Search sent\r\n");
 
-                // Receives discovery response from camera UNICAST
+                // Receives discovery response from camera UNICAST (TimedOut on 30 secs)
                 byte[] ReceiveBuffer = new byte[64000];
                 int ReceivedBytes = 0;
-                while (true)                                                                                            // Received Buffered response
+                Thread TimeoutThread = new Thread(ThreadProc);
+                TimeoutThread.Start();
+                while (TimeoutThread.IsAlive)                                                                                            // Received Buffered response
                 {
                     if (UdpSocket.Available > 0)
                     {
@@ -119,42 +153,51 @@ namespace Microscope_Control
                         if (ReceivedBytes > 0)
                         {
                             ConnectionTxt.AppendText(Encoding.UTF8.GetString(ReceiveBuffer, 0, ReceivedBytes));
+                            CamConStatus = true;
                         }
                         break;
                     }
                 }
-                ConnectionTxt.AppendText("Connection successful =)  \r\n");
-
-                // Loads transparent logo to guide image (Done here to serve as a sleep function)
-                Bitmap referenceImg = new Bitmap(ImgLogo.Image);
-                Bitmap transparentImg = new Bitmap(ImgLogo.Image.Width, ImgLogo.Image.Height);
-                Graphics tempG = Graphics.FromImage(referenceImg);
-                Color c = Color.Transparent;
-                Color v = Color.Transparent;
-                for (int x = 0; x < ImgLogo.Image.Width; x++)
+                if (CamConStatus)
                 {
-                    for (int y = 0; y < ImgLogo.Image.Height; y++)
+                    // Loads transparent logo to guide image (Done here to serve as a sleep function)
+                    Bitmap referenceImg = new Bitmap(ImgLogo.Image);
+                    Bitmap transparentImg = new Bitmap(ImgLogo.Image.Width, ImgLogo.Image.Height);
+                    Graphics tempG = Graphics.FromImage(referenceImg);
+                    Color c = Color.Transparent;
+                    Color v = Color.Transparent;
+                    for (int x = 0; x < ImgLogo.Image.Width; x++)
                     {
-                        c = referenceImg.GetPixel(x, y);
-                        v = Color.FromArgb(13, c.R, c.G, c.B);
-                        transparentImg.SetPixel(x, y, v);
+                        for (int y = 0; y < ImgLogo.Image.Height; y++)
+                        {
+                            c = referenceImg.GetPixel(x, y);
+                            v = Color.FromArgb(13, c.R, c.G, c.B);
+                            transparentImg.SetPixel(x, y, v);
+                        }
+                    }
+                    tempG.DrawImage(transparentImg, Point.Empty);
+                    ImgGuide.Image = transparentImg;
+
+                    ConnectionTxt.Visible = false;
+                    ConnectionTxt.Text = "";
+                    LiveviewBtn.Enabled = true;
+                    CamResponse = SendRequest("setPostviewImageSize", "\"Original\"");
+                    CamResponse = SendRequest("actZoom", "\"in\",\"start\"");
+                    getEventTxt.Text = CamResponse;
+
+                    ConnectionTxt.AppendText("Connection successful =)  \r\n");
+                    if (ConSuc)
+                    {
+                        BShutterBtn.Enabled = true;
+                        StartBtn.Enabled = true;
+                        ManageChkBtn.Enabled = true;
                     }
                 }
-                tempG.DrawImage(transparentImg, Point.Empty);
-                ImgGuide.Image = transparentImg;
-
-                ConnectionTxt.Visible = false;
-                ConnectionTxt.Text = "";
-                LiveviewBtn.Enabled = true;
-                CamConStatus = true;
-                CamResponse = SendRequest("setPostviewImageSize", "\"Original\"");
-                CamResponse = SendRequest("actZoom", "\"in\",\"start\"");
-                getEventTxt.Text = CamResponse;
-                if (ConSuc)
+                else
                 {
-                    BShutterBtn.Enabled = true;
-                    StartBtn.Enabled = true;
-                    ManageChkBtn.Enabled = true;
+                    ConnectBtn.Enabled = true;
+                    ConnectionTxt.AppendText("Connection TimedOut =(  \r\n");
+                    UdpSocket.Close();
                 }
             }
             catch (Exception ex)
@@ -177,7 +220,9 @@ namespace Microscope_Control
                 lvwRequest.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
                 imgStream = lvwRequest.GetResponse().GetResponseStream();                   // Setup and get the request stream response
                 imgReader = new StreamReader(imgStream);
-                LiveviewTmr.Enabled = true;                                     // Start liveview Timer (Send HTTP GET request)
+                if (backgroundWorker1.IsBusy != true)
+                    backgroundWorker1.RunWorkerAsync();
+                // Start liveview Timer (Send HTTP GET request)
                 guideChkBtn.Enabled = true;
             }
             else
@@ -186,7 +231,7 @@ namespace Microscope_Control
                 FlagLvw = false;
                 CamResponse = SendRequest("stopLiveview", "");                  // Send action request to camera host to stop liveview
                 ConnectionTxt.AppendText(CamResponse + "\r\n");
-                LiveviewTmr.Enabled = false;
+                backgroundWorker1.CancelAsync();
                 guideChkBtn.Enabled = false;
                 imgStream.Close();
                 imgReader.Close();
@@ -282,18 +327,21 @@ namespace Microscope_Control
             }
 
         }
+        private static Object locker = new Object();
 
         private void guideRefreshBtn_Click(object sender, EventArgs e)                      // Loads image from live view to be frozen and displayed as a guide frame
         {
             ImgGuide.Location = new Point(0, 0);                                                    // Ensures the reference image frame is in place
-            Bitmap referenceImg = new Bitmap(ImgLiveview.Image);
-            Bitmap transparentImg = new Bitmap(ImgLiveview.Image.Width, ImgLiveview.Image.Height);
+            Bitmap referenceImg;
+            lock (locker)
+                referenceImg = new Bitmap(ImgLiveview.Image);
+            Bitmap transparentImg = new Bitmap(referenceImg.Width, referenceImg.Height);
             Graphics tempG = Graphics.FromImage(referenceImg);
             Color c = Color.Black;
             Color v = Color.Black;
-            for (int x = 0; x < ImgLiveview.Image.Width; x++)
+            for (int x = 0; x < referenceImg.Width; x++)
             {
-                for (int y = 0; y < ImgLiveview.Image.Height; y++)
+                for (int y = 0; y < referenceImg.Height; y++)
                 {
                     c = referenceImg.GetPixel(x, y);
                     v = Color.FromArgb(50, c.R, c.G, c.B);
@@ -334,7 +382,7 @@ namespace Microscope_Control
 
                 // Receive camera (Host) response
                 WebResponse response = request.GetResponse();                                                       // Display the status
-                ConnectionTxt.AppendText(((HttpWebResponse)response).StatusDescription);
+                //ConnectionTxt.AppendText(((HttpWebResponse)response).StatusDescription);
                 dataStream = response.GetResponseStream();                                                          // Open the stream using a StreamReader for easy access
                 StreamReader reader = new StreamReader(dataStream);
                 string responseFromServer = reader.ReadToEnd();
@@ -347,17 +395,23 @@ namespace Microscope_Control
                 response.Close();
                 responseF = responseFromServer;
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
+                ConnectionTxt.Text = e.Message;
                 responseF = "";
             }
             return responseF;
+        }
+        private static void ThreadProc()
+        {
+            Thread.Sleep(20000);
         }
 
         // These events are provided for test purposes only Any release: please leave these as NOT VISIBLE
 
         private void getEventBtn_Click(object sender, EventArgs e)                          // Test Button (Not visible) Requests Events to camera
         {
+            //JSON.net
             getEventTxt.Text = "";
             CamResponse = SendRequest("getEvent", "true");                              // These are my formating steps, please do not look at them... it is actually a very bad coding
             CamResponse = CamResponse.Replace("\",\"", "\r\n\t");
@@ -417,27 +471,7 @@ namespace Microscope_Control
             }
         }
 
-        // The following Events are related to the board managing and communication
-
-        // Type definition of Stage related variables
-
-
-        Random rnd = new Random();                          // Random session iniciator
-        byte[] session;                                     // Byte session identifier
-        byte[] sessionRx;                                   // Byte session echo
-        byte[] pos1;
-        byte[] pos2;
-        byte[] pos3;
-        bool PortSel = false;                               // Retrieves information of board connection
-        bool ConSuc = false;                                // Succesful connection flag
-        bool Busy = false;                                  // Activity monitoring flag
-        string TxString;                                    // Data transmision string (Send this)
-        string RxString;                                    // Data received string
-        int conTO = 0;                                      // Timeout connection by attempts
-        int Pos = 0;                                        // Position verifier
-        int PosRef = 0;                                     // Position reference
-        int Cycle = 0;                                      // Cycle verifier
-        int picCount = 0;
+        //
 
         private void comboBox1_DropDown(object sender, EventArgs e)                                     // Sniffs for serial ports connected to the computer (Arduino connects vias Serial)
         {
@@ -495,21 +529,7 @@ namespace Microscope_Control
 
         private void BShutterBtn_Click(object sender, EventArgs e)
         {
-            CamResponse = SendRequest("actTakePicture", "");
-            string imgURL = CamResponse.Substring(20).Split('\"').FirstOrDefault();
-            string name = ("Session" + BitConverter.ToString(session));
-            string name2 = ("P" + picCount.ToString("D4"));
-            string path = ("C:\\" + name);
-            picCount += 1;
-            WebClient imageClient = new WebClient();
-            if (!Directory.Exists(path))
-            {
-                DirectoryInfo di = Directory.CreateDirectory(path);
-            }
-            imageClient.DownloadFile(imgURL, path + "\\" + name + name2 + ".jpg");
-            ImgAux.Image = Image.FromFile("C:\\Users\\TOSHIBA\\Documents\\Archivos doctorado\\2016-2\\Programming\\Microscope Control\\Microscope control V1.0\\microscope.gif");
-
-            ImgAux.ImageLocation = imgURL;
+            ShutterBW.RunWorkerAsync();
         }
 
         private void BSaveBtn_Click(object sender, EventArgs e)
@@ -522,6 +542,7 @@ namespace Microscope_Control
         private void BStepTB_Scroll(object sender, EventArgs e)
         {
             PosRef = BStepTB.Value;                                                           // Almacena la posición de usuario del trackBar, esta es la referencia para verificar el movimiento de la plataforma
+            ;
             if (!Busy)                                                                          // Envía el dato de posición en tiempo de ejecución si la bandera Busy está inactiva
             {
                 Busy = true;
@@ -669,7 +690,7 @@ namespace Microscope_Control
 
         private void reverseChkBtn_CheckedChanged(object sender, EventArgs e)
         {
-            //Busy = true;
+            Busy = true;
             if (reverseChkBtn.Checked)
             {
                 TxString = ("@" + Encoding.ASCII.GetString(session) + "R");
@@ -905,126 +926,14 @@ namespace Microscope_Control
 
         private void MoveStage(int steps, char inst)
         {
-            //BStepTBLbl.Text = ("Step: " + PosRef);
-            //Pos = BStepTB.Value;
-            //string posAux = Convert.ToString(Pos, 2);
             Pos = steps;
-            string posAux = Convert.ToString(Pos, 2);
-            int lendif = 21 - posAux.Length;
-            for (i = 0; i < lendif; i++)
-                posAux = '0' + posAux;
-            pos3 = new byte[] { Convert.ToByte(posAux.Substring(0, 7), 2) };
-            pos2 = new byte[] { Convert.ToByte(posAux.Substring(7, 7), 2) };
-            pos1 = new byte[] { Convert.ToByte(posAux.Substring(14, 7), 2) };
-            //TxString = ("@" + Encoding.ASCII.GetString(session) + "P" + Encoding.ASCII.GetString(pos1) + Encoding.ASCII.GetString(pos2) + Encoding.ASCII.GetString(pos3));
-            TxString = ("@" + Encoding.ASCII.GetString(session) + inst + Encoding.ASCII.GetString(pos1) + Encoding.ASCII.GetString(pos2) + Encoding.ASCII.GetString(pos3));
+            byte[] bytePos = BitConverter.GetBytes(steps);
+            byte instruction = Convert.ToByte(inst);
+            byte[] sendthis = new byte[] { 64, session[0], Convert.ToByte(inst), bytePos[0], bytePos[1], 0x0A, 0X0A };
             BStateLbl.Text = ("Moving...");
-            serialPort1.WriteLine(TxString);
+            serialPort1.Write(sendthis, 0, 7);
+            ;
         }
-
-
-        //if (RxString.Contains(("@" + Encoding.ASCII.GetString(session) + "MF")))
-        //{
-        //    BStateLbl.Text = ("Ready");
-        //    Busy = false;
-        //    receivedAction = true;                                       // Libera la bandera de estado ocupado
-        //    if (Pos != PosRef)                                      // Verifica que la información de posición esté actualizada
-        //    {
-        //        BStepTBLbl.Text = ("Step: " + PosRef);
-        //        Pos = BStepTB.Value;
-        //        string posAux = Convert.ToString(Pos, 2);
-        //        int lendif = 21 - posAux.Length;
-        //        for (i = 0; i < lendif; i++)
-        //            posAux = '0' + posAux;
-        //        pos3 = new byte[] { Convert.ToByte(posAux.Substring(0, 7), 2) };
-        //        pos2 = new byte[] { Convert.ToByte(posAux.Substring(7, 7), 2) };
-        //        pos1 = new byte[] { Convert.ToByte(posAux.Substring(14, 7), 2) };
-        //        //BCycleTxt.Text = (BitConverter.ToString(pos1) + BitConverter.ToString(pos2) + BitConverter.ToString(pos3));
-        //        TxString = ("@" + Encoding.ASCII.GetString(session) + "P" + Encoding.ASCII.GetString(pos1) + Encoding.ASCII.GetString(pos2) + Encoding.ASCII.GetString(pos3));
-        //        serialPort1.WriteLine(TxString);
-        //        BStateLbl.Text = ("Moving...");
-        //        Busy = true;
-        //    }
-        //}
-
-        //if (RxString.Contains(("@" + Encoding.ASCII.GetString(session) + "IF")))
-        //{
-        //    string tempstring;
-        //    tempstring = RxString.Substring(4, RxString.Length - 4);
-        //    var temparray = tempstring.Split(',');
-        //    BStepTxt.Text = temparray[0];
-        //    BCycleTxt.Text = temparray[1];
-        //    BTimeTxt.Text = temparray[2];
-        //    receivedAction = true;
-        //    Busy = false;
-        //}
-        //if (RxString.Contains(("@" + Encoding.ASCII.GetString(session) + "OF")))
-        //{
-        //    receivedAction = true;
-        //    Busy = false;
-        //    if (OnCapture)
-        //    {
-        //        if (onStart)
-        //            StartCapture();
-        //        onMove = true;
-        //        BStateLbl.Text = (BStateLbl.Text + ("\nMove finished"));
-        //        ManageFrames();
-        //    }
-        //}
-        //if (RxString.Contains(("@" + Encoding.ASCII.GetString(session) + "SF")))
-        //{
-        //    Busy = true;
-        //    TxString = ("@" + Encoding.ASCII.GetString(session) + "O");
-        //    Pos = 0;
-        //    PosRef = 0;
-        //    BStepTB.Value = 0;
-        //    BStepTBLbl.Text = ("Step: 0");
-        //    receivedAction = true;
-        //    serialPort1.WriteLine(TxString);
-        //    //if (OnCapture)
-        //    //    ManageFrames();
-        //}
-        //if (RxString.Contains(("@" + Encoding.ASCII.GetString(session) + "QF")))
-        //{
-        //    receivedAction = true;
-        //    Busy = false;
-        //}
-        //if (RxString.Contains(("@" + Encoding.ASCII.GetString(session) + "UF")))
-        //{
-        //    receivedAction = true;
-        //    Busy = false;
-        //}
-        //if (RxString.Contains(("@" + Encoding.ASCII.GetString(session) + "WF")))
-        //{
-        //    receivedAction = true;
-        //    Busy = false;
-        //}
-        //if (RxString.Contains(("@" + Encoding.ASCII.GetString(session) + "RF")))
-        //{
-        //    receivedAction = true;
-        //    Busy = false;
-        //}
-        //if (RxString.Contains(("@" + Encoding.ASCII.GetString(session) + "FF")))
-        //{
-        //    receivedAction = true;
-        //    Busy = false;
-        //}
-        //if (RxString.Contains(("@" + Encoding.ASCII.GetString(session) + "VF")))
-        //{
-        //    receivedAction = true;
-        //    Busy = false;
-        //    if (onStart)
-        //        CreateFolders();
-        //}
-        //if (!receivedAction)
-        //{
-        //    serialPort1.WriteLine(TxString);
-        //}
-
-        // The following code is used to manage the capture routine
-
-        // Type definition of capture related variables
-
 
         bool unmanaged = false;                              // Unmanaged capture Flag
         bool OnCapture = false;
@@ -1042,6 +951,20 @@ namespace Microscope_Control
 
         private void StartBtn_Click(object sender, EventArgs e)
         {
+            //foreach (Control item in this.Controls)
+            //{
+            //    if (item is Button)
+            //    {
+            //        if (((Button)item).Text.ToCharArray().FirstOrDefault() == 'B')
+            //            ((Button)item).Enabled = false;
+            //    }
+            //    if (item is Label)
+            //    {
+            //        if (((Label)item).Text.ToCharArray().FirstOrDefault() == 'B')
+            //            ((Label)item).Enabled = false;
+            //    }
+            //}
+
             BSaveBtn.Enabled = false;
             BStepMinBtn.Enabled = false;
             BStepMaxBtn.Enabled = false;
@@ -1050,7 +973,6 @@ namespace Microscope_Control
             BCycle2Btn.Enabled = false;
             BCycleSetBtn.Enabled = false;
             BShutterBtn.Enabled = false;
-            StartBtn.Enabled = false;
             BStepMax1Btn.Enabled = false;
             BStepMax2Btn.Enabled = false;
             //BSpeedTB.Enabled = false;
@@ -1152,7 +1074,7 @@ namespace Microscope_Control
             }
             Thread.Sleep(500);
             TakePictue();
-            
+
             if (myFrame == TotalFrames)
             {
                 onMove = true;
@@ -1180,15 +1102,24 @@ namespace Microscope_Control
                     myFrame += 1;
                     onMove = false;
                     onSave = false;
-                    StartCapture();
+                    if (unmanaged)
+                    {
+                        StartCapture();
+                    }
+                    else
+                    {
+                        OnCapture = false;
+                    }
                 }
                 else
                 {
                     LiveviewTmr.Interval = 3;
                     Busy = true;
-                    MoveStage(Convert.ToInt32(BStepTxt.Text)*TotalFrames, 'S');
+                    MoveStage(Convert.ToInt32(BStepTxt.Text) * TotalFrames, 'S');
                     onMove = false;
                     onSave = false;
+                    OnCapture = false;
+                    captureBtn.Enabled = false;
                     myImg += 1;
                     myFrame = 0;
                 }
@@ -1198,7 +1129,172 @@ namespace Microscope_Control
         private void IntervalTmr_Tick(object sender, EventArgs e)
         {
             IntervalTmr.Enabled = false;
-            StartCapture();
+            if (!unmanaged)
+            {
+                captureBtn.Enabled = true;
+                SystemSounds.Beep.Play();
+            }
+            else
+            {
+                StartCapture();
+                OnCapture = true;
+            }
+        }
+
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker bw = sender as BackgroundWorker;
+            try
+            {
+                while (bw.CancellationPending == false)
+                {
+                    using (var memstream = new MemoryStream())
+                    {
+                        imgData = new List<byte>();
+                        buffer = new byte[520];
+                        bufferAux = new byte[4];
+                        payloadType = 0;
+                        imgSize = 0;
+                        frameNo = -1;
+                        paddingSize = 0;
+
+                        GetHeader:                                                          // Retrieves a byte(s) from the stream to check if it corresponds to Sony header construction
+
+                        // Common Header (8 Bytes)
+                        //buffer = new byte[520];
+                        imgReader.BaseStream.Read(buffer, 0, 1);                            // Seeks for start byte
+                        var start = buffer[0];
+                        if (start != 0xff)
+                            goto GetHeader;
+
+                        //buffer = new byte[520];
+                        imgReader.BaseStream.Read(buffer, 0, 1);                            // Stores payload Type
+                        payloadType = (buffer[0]);
+                        if (!((payloadType == 1) || (payloadType == 2)))
+                            goto GetHeader;
+
+                        //buffer = new byte[520];
+                        imgReader.BaseStream.Read(buffer, 0, 2);                            // Stores Frame Number depending Payload type
+                        if (payloadType == 1)
+                            frameNo = BitConverter.ToUInt16(buffer, 0);
+
+                        imgReader.BaseStream.Read(buffer, 0, 4);                            // Discards expected Time stamp
+
+                        // Payload header (128 bytes)
+                        //buffer = new byte[520];
+                        imgReader.BaseStream.Read(buffer, 0, 4);
+                        if (!((buffer[0] == 0x24) & (buffer[1] == 0x35) & (buffer[2] == 0x68) & (buffer[3] == 0x79)))
+                            goto GetHeader;                                                 // If the start code does not correspond to fixed code (0x24, 0x35, 0x68, 0x79), starts over
+
+                        //bufferAux = new byte[4];
+                        imgReader.BaseStream.Read(bufferAux, 0, 4);
+                        paddingSize = bufferAux[3];
+                        bufferAux[3] = bufferAux[2];
+                        bufferAux[2] = bufferAux[1];
+                        bufferAux[1] = bufferAux[0];
+                        bufferAux[0] = 0;
+                        Array.Reverse(bufferAux);
+                        imgSize = BitConverter.ToInt32(bufferAux, 0);                       // Reads and translates Data stream size
+
+                        if (payloadType == 1)                                               // Case JPEG data
+                        {
+                            imgReader.BaseStream.Read(buffer, 0, 120);
+                            while (imgData.Count < imgSize)
+                            {
+                                //buffer = new byte[520];
+                                imgReader.BaseStream.Read(buffer, 0, 1);
+                                imgData.Add(buffer[0]);
+                            }
+                        }
+
+                        //getEventTxt.AppendText("Image size: " + imgData.Count.ToString());
+                        MemoryStream stream = new MemoryStream(imgData.ToArray());
+                        BinaryReader reader = new BinaryReader(stream);
+                        Bitmap bmpImage = (Bitmap)Image.FromStream(stream);
+
+                        if (ImgLiveview.Image != null)
+                            ImgLiveview.Image.Dispose();
+
+                        //ImgLiveview.Image = bmpImage;
+                        bw.ReportProgress(0, bmpImage);
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+            e.Cancel = true;
+        }
+
+        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            lock (locker)
+                ImgLiveview.Image = (Bitmap)e.UserState;
+        }
+
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Cancelled == true)
+            {
+                //resultLabel.Text = "Canceled!";
+            }
+            else if (e.Error != null)
+            {
+                //resultLabel.Text = "Error: " + e.Error.Message;
+            }
+            else
+            {
+                //resultLabel.Text = "Done!";
+            }
+        }
+
+        private void ShutterBW_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            CamResponse = SendRequest("actTakePicture", "");
+            string imgURL = CamResponse.Substring(20).Split('\"').FirstOrDefault();
+            string name = ("Session" + BitConverter.ToString(session));
+            string name2 = ("P" + picCount.ToString("D4"));
+            string path = ("C:\\" + name);
+            picCount += 1;
+            WebClient imageClient = new WebClient();
+            if (!Directory.Exists(path))
+            {
+                DirectoryInfo di = Directory.CreateDirectory(path);
+            }
+
+            worker.ReportProgress(10);
+
+            imageClient.DownloadFile(imgURL, path + "\\" + name + name2 + ".jpg");
+            //ImgAux.Image = Image.FromFile("C:\\Users\\TOSHIBA\\Documents\\Archivos doctorado\\2016-2\\Programming\\Microscope Control\\Microscope control V1.0\\microscope.gif");
+            //ImgAux.ImageLocation = imgURL;
+        }
+
+        private void ShutterBW_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Cancelled == true)
+            {
+                //resultLabel.Text = "Canceled!";
+            }
+            else if (e.Error != null)
+            {
+                //resultLabel.Text = "Error: " + e.Error.Message;
+            }
+            else
+            {
+                //resultLabel.Text = "Done!";
+            }
+        }
+
+        private void ShutterBW_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            if (e.ProgressPercentage == 10)
+            {
+                // Ya tome la foto
+
+            }
         }
     }
 

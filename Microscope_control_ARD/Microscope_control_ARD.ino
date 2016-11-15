@@ -72,6 +72,8 @@ byte sessionRx;
 int pos1;
 int pos2;
 int pos3;
+unsigned char posL;
+unsigned char posH;
 int stepMult = 1;
 //////////////
 
@@ -278,19 +280,14 @@ void CalibrationHandler()
   switch (rxByte)
   {
     case 'P':
-      //delay(1);
+      //delay(2);
       rxByte = Serial.read();
-      rxData += char(rxByte);
-      pos1 = int(rxByte);
-      //delay(1);
+      posL = rxByte;
+      //delay(2);
       rxByte = Serial.read();
-      rxData += char(rxByte);
-      pos2 = int(rxByte);
-      //delay(1);
-      rxByte = Serial.read();
-      rxData += char(rxByte);
-      pos3 = int(rxByte);
-      rxPos = pos1 + (pos2 * 128) + (pos3 * 128 * 128);
+      posH = rxByte;
+      //delay(2);
+      rxPos = posL + (posH * 256);
       //***********
       Pos = (rxPos - lPos) * (sign);
       if (Pos < 0)
@@ -354,18 +351,28 @@ void CalibrationHandler()
       rxPos = 0;
       Pos = 0;
       //delay(1);
-      rxByte = Serial.read();
-      rxData += char(rxByte);
-      pos1 = int(rxByte);
       //delay(1);
       rxByte = Serial.read();
-      rxData += char(rxByte);
-      pos2 = int(rxByte);
+      posL = rxByte;
       //delay(1);
       rxByte = Serial.read();
-      rxData += char(rxByte);
-      pos3 = int(rxByte);
-      rxPos = pos1 + (pos2 * 128) + (pos3 * 128 * 128);
+      posH = rxByte;
+      //delay(1);
+      rxPos = posL + (posH * 256);
+      //***********
+      Pos = (rxPos - lPos) * (sign);
+      /*      rxByte = Serial.read();
+            rxData += char(rxByte);
+            pos1 = int(rxByte);
+            //delay(1);
+            rxByte = Serial.read();
+            rxData += char(rxByte);
+            pos2 = int(rxByte);
+            //delay(1);
+            rxByte = Serial.read();
+            rxData += char(rxByte);
+            pos3 = int(rxByte);
+            rxPos = pos1 + (pos2 * 128) + (pos3 * 128 * 128);*/
       Pos =  (rxPos - lPos) * (sign) ;
       if (Pos < 0)
       {
@@ -468,8 +475,8 @@ void CalibrationHandler()
       Serial.write(sessionRx);
       Serial.print("VF");
       break;
-      default:
-      
+    default:
+      break;
 
   }
 }
