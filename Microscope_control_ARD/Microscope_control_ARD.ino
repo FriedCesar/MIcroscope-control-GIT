@@ -12,17 +12,17 @@
                             - No shutter on board (Wireless camera)
                             - Modifiable stage moving direction
                             - Variable step method (microsteping 16 steps, or normal step)
-                            - Improved communication protocol 
+                            - Improved communication protocol
                               (Needed, the COM Protocol used before only allowed to calibrate the board, now it has active comunication, in order to permit the interaction PC-Board-Camera))
                             - TODO:
                                     - Improve and standarize the COM Protocol (Single structure for every command)
                                     - Standarize data format (ASCII encoding for every value)
                                     - Temperature control
                                     - Option for IR Control, Temp ON-OFF,Servo-motor
-                            
+
                                             César Augusto Hernández Espitia
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-              
+
                          MOTOR DRIVER CONNECTION DIAGRAM
  *                                                                                         *
  *                                                                                         *
@@ -141,15 +141,19 @@ void setup()
   delay(5);
   digitalWrite(slp, HIGH);                          // Ativate Stepper Motor Driver
   digitalWrite(rst, HIGH);
-  
-//  digitalWrite(ms1, LOW);                           // Assure NO Microstep (Microstep: all HIGH)
-//  digitalWrite(ms2, LOW);
-//  digitalWrite(ms3, LOW);                           // Not needed (On LOW by PinStart)
+
+  //  digitalWrite(ms1, LOW);                           // Assure NO Microstep (Microstep: all HIGH)
+  //  digitalWrite(ms2, LOW);
+  //  digitalWrite(ms3, LOW);                           // Not needed (On LOW by PinStart)
 
   digitalWrite(dir, HIGH);                          // Move motor on startup
   Blink(ST, 128);
   digitalWrite(dir, LOW);
   Blink(ST, 128);
+
+  delay(5);
+  digitalWrite(slp, LOW);                          // Deativate Stepper Motor Driver
+  digitalWrite(rst, LOW);
 
   digitalWrite(led, LOW);
 
@@ -166,6 +170,7 @@ void loop()                                         // Check connection status a
   else digitalWrite(led, LOW);
   if (endFlag)
   {
+    PinStart();
     Blink (LD, 1);
     Serial.end();
     Blink (LD, 2);
@@ -193,6 +198,9 @@ void serialEvent()
       rxData = "";
       Serial.write("COMSTART");
       Serial.write(rxByte);
+      delay(5);
+      digitalWrite(slp, HIGH);                          // Ativate Stepper Motor Driver
+      digitalWrite(rst, HIGH);
       startFlag = true;
     }
     if (rxData == ("COMERROR"))

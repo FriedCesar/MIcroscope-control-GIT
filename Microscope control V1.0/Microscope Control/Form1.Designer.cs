@@ -158,7 +158,6 @@
             this.getEventBtn.TabIndex = 6;
             this.getEventBtn.Text = "getEvent";
             this.getEventBtn.UseVisualStyleBackColor = true;
-            this.getEventBtn.Visible = false;
             this.getEventBtn.Click += new System.EventHandler(this.getEventBtn_Click);
             // 
             // getEventTxt

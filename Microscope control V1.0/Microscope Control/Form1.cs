@@ -116,6 +116,7 @@ namespace Microscope_Control
         public Form1()
         {
             InitializeComponent();
+            //CheckForIllegalCrossThreadCalls = false;
             ImgGuide.BackColor = Color.Transparent;
             ImgGuide.Parent = ImgLiveview;
         }
@@ -201,6 +202,7 @@ namespace Microscope_Control
                     }
                     tempG.DrawImage(transparentImg, Point.Empty);
                     ImgGuide.Image = transparentImg;
+                    ImgGuide.Location = new Point(0, 0);
 
                     // Setups form objects OnConnect, Zooms camera in and sends request toreceive full resolution images.
                     ConnectionTxt.Visible = false;
@@ -236,8 +238,8 @@ namespace Microscope_Control
             if (!FlagLvw)
             {
                 // Start liveview Background Worker (Send HTTP GET request, calls Liveview handler)
-                ImgLiveview.Visible = true;
                 FlagLvw = true;
+                ImgLiveview.Visible = true;
                 CamResponse = SendRequest("startLiveview", "");                             // Send action request to camera host to start liveview
                 ConnectionTxt.AppendText(CamResponse + "\r\n");
                 lvwURL = CamResponse.Substring(19).Split('\"').FirstOrDefault();            // Setup the URL for the liveview download
@@ -254,9 +256,9 @@ namespace Microscope_Control
             {
                 ImgLiveview.Visible = false;
                 FlagLvw = false;
+                LiveviewBW.CancelAsync();
                 CamResponse = SendRequest("stopLiveview", "");                              // Send action request to camera host to stop liveview
                 ConnectionTxt.AppendText(CamResponse + "\r\n");
-                LiveviewBW.CancelAsync();
                 guideChkBtn.Enabled = false;
                 imgStream.Close();
                 imgReader.Close();
@@ -493,18 +495,20 @@ namespace Microscope_Control
                         BinaryReader reader = new BinaryReader(stream);
                         Bitmap bmpImage = (Bitmap)Image.FromStream(stream);
 
-                        if (ImgLiveview.Image != null)
-                            ImgLiveview.Image.Dispose();
+                        //if (ImgLiveview.Image != null)
+                        //    ImgLiveview.Image.Dispose();
 
                         //ImgLiveview.Image = bmpImage;
-                        bw.ReportProgress(0, bmpImage);
+                        if (bmpImage != null)
+                            bw.ReportProgress(0, bmpImage);
                     }
                 }
 
             }
             catch (Exception ex)
             {
-                ConnectionTxt.Text = ex.Message;
+                //MessageBox.Show(ex.Message);
+                                        // ConnectionTxt.Text = ex.Message;
             }
             e.Cancel = true;
         }
@@ -533,6 +537,8 @@ namespace Microscope_Control
 
         private void ShutterBW_DoWork(object sender, DoWorkEventArgs e)                         // Sends HTTP GET request for camera shutter (Manages saving image)
         {
+            if (LiveviewBW.IsBusy != true)
+                LiveviewBW.CancelAsync();
             BackgroundWorker worker = sender as BackgroundWorker;
             WebClient imageClient = new WebClient();                                                // Initializes webclient for image managing
             onSave = true;                                                                          // Sets OnSave flag
@@ -556,6 +562,8 @@ namespace Microscope_Control
                 DirectoryInfo di = Directory.CreateDirectory(path);
             }
             worker.ReportProgress(10);                                                              // If action needed on shutter use this
+            if (LiveviewBW.IsBusy != true)
+                LiveviewBW.RunWorkerAsync();
             imageClient.DownloadFile(imgURL, path + "\\" + name);                                   // Saves File
         }
 
@@ -1061,10 +1069,11 @@ namespace Microscope_Control
         //              O: Set origin request
         //                  Received: OF
         //              S: Movement forward cycle request (Managed on MoveStage function)
-        //                  Extra: 3 bytes
+        //                  Extra: 4 bytes
         //                      1st byte: Position High byte
         //                      2nd byte: Position Low byte
         //                      3rd byte: 0x0A (Line carrier)
+        //                      4th byte: 0x0A (Line carrier)
         //                  Received: SF
         //              Z: Movement backwards cycle request (Managed on MoveStage function)
         //                  Extra: 3 bytes
@@ -1125,6 +1134,13 @@ namespace Microscope_Control
                         Busy = false;
                         string tempstring = RxString.Substring(4, RxString.Length - 4);             // Decode and allocate data
                         var temparray = tempstring.Split(',');
+                        Array.Resize(ref temparray, 3);
+                        if (temparray[2]==null)
+                        {
+                            Busy = true;
+                            receivedAction = false;
+                            break;
+                        }
                         BStepTxt.Text = temparray[0];
                         BCycleTxt.Text = temparray[1];
                         BTimeTxt.Text = temparray[2];
@@ -1187,8 +1203,8 @@ namespace Microscope_Control
             Pos = steps;
             byte[] bytePos = BitConverter.GetBytes(steps);
             byte instruction = Convert.ToByte(inst);
-            byte[] sendthis = new byte[] { 64, session[0], Convert.ToByte(inst), bytePos[0], bytePos[1], 0x0A };
-            //byte[] sendthis = new byte[] { 64, session[0], Convert.ToByte(inst), bytePos[0], bytePos[1], 0x0A, 0X0A };
+            //byte[] sendthis = new byte[] { 64, session[0], Convert.ToByte(inst), bytePos[0], bytePos[1], 0x0A };
+            byte[] sendthis = new byte[] { 64, session[0], Convert.ToByte(inst), bytePos[0], bytePos[1], 0x0A, 0X0A };
             BStateLbl.Text = ("Moving...");
             serialPort1.Write(sendthis, 0, 7);
             ;
@@ -1198,6 +1214,7 @@ namespace Microscope_Control
         // The following code is (Mostly) related to Automated observation
         //      TODO:
         //              - Organize form object enable/disable routines
+        //              - Check manul capture (Maybe add a visual of timer)
 
 
         private void StartBtn_Click(object sender, EventArgs e)
@@ -1313,6 +1330,7 @@ namespace Microscope_Control
             ////ImgAux.Image = Image.FromFile("C:\\Users\\TOSHIBA\\Documents\\Archivos doctorado\\2016-2\\Programming\\Microscope Control\\Microscope control V1.0\\microscope.gif");
             ////ImgAux.ImageLocation = imgURL;
 
+
             ShutterBW.RunWorkerAsync();
             onSave = true;
         }
@@ -1385,12 +1403,13 @@ namespace Microscope_Control
             if (!unmanaged)
             {
                 captureBtn.Enabled = true;
-                SystemSounds.Beep.Play();
+                SystemSounds.Exclamation.Play();
             }
             else
             {
-                StartCapture();
+                SystemSounds.Beep.Play();
                 OnCapture = true;
+                StartCapture();
             }
         }
     }

@@ -68,6 +68,26 @@ namespace Microscope_Control.Properties {
                 object obj = ResourceManager.GetObject("microscopio", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
-        }        
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap refreshcirclearrow {
+            get {
+                object obj = ResourceManager.GetObject("refreshcirclearrow", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap refreshcirclearrowicon {
+            get {
+                object obj = ResourceManager.GetObject("refreshcirclearrowicon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
