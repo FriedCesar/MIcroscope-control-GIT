@@ -81,6 +81,8 @@
             this.IntervalTmr = new System.Windows.Forms.Timer(this.components);
             this.LiveviewBW = new System.ComponentModel.BackgroundWorker();
             this.ShutterBW = new System.ComponentModel.BackgroundWorker();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.textBox2 = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.ImgLiveview)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgGuide)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgAux)).BeginInit();
@@ -164,7 +166,6 @@
             // 
             this.getEventTxt.Location = new System.Drawing.Point(26, 489);
             this.getEventTxt.Name = "getEventTxt";
-            this.getEventTxt.ReadOnly = true;
             this.getEventTxt.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.getEventTxt.Size = new System.Drawing.Size(75, 20);
             this.getEventTxt.TabIndex = 7;
@@ -611,12 +612,31 @@
             this.ShutterBW.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.ShutterBW_ProgressChanged);
             this.ShutterBW.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.ShutterBW_RunWorkerCompleted);
             // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(1, 1);
+            this.textBox1.Multiline = true;
+            this.textBox1.Name = "textBox1";
+            this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textBox1.Size = new System.Drawing.Size(124, 317);
+            this.textBox1.TabIndex = 76;
+            // 
+            // textBox2
+            // 
+            this.textBox2.Location = new System.Drawing.Point(1, 324);
+            this.textBox2.Multiline = true;
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(124, 61);
+            this.textBox2.TabIndex = 77;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1350, 729);
+            this.Controls.Add(this.textBox2);
+            this.Controls.Add(this.textBox1);
             this.Controls.Add(this.captureBtn);
             this.Controls.Add(this.ManageChkBtn);
             this.Controls.Add(this.StartBtn);
@@ -731,6 +751,8 @@
         private System.Windows.Forms.Timer IntervalTmr;
         private System.ComponentModel.BackgroundWorker LiveviewBW;
         private System.ComponentModel.BackgroundWorker ShutterBW;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox textBox2;
     }
 }
 

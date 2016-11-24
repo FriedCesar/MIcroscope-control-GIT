@@ -40,6 +40,8 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Microscope_Control
 {
@@ -47,7 +49,7 @@ namespace Microscope_Control
     {
 
 
-        // The following Events are related to the camera behavior
+        // The following Variables are related to the camera behavior
 
         // Type definition of Camera related variables
 
@@ -68,10 +70,16 @@ namespace Microscope_Control
         string lvwURL = "";                         // Stores camera URL for liveview
         //bool timeout = false;
         bool shutterFlag = false;
-        private static Object locker = new Object();
+        //private static Object locker = new Object();
+        private static object locker = new object();
 
+        public class RootGetEvent
+        {
+            public int id { get; set; }
+            public JArray result { get; set; }
+        }
 
-        // The following Events are related to the board managing and communication
+        // The following Variables are related to the board managing and communication
 
         // Type definition of Stage related variables
 
@@ -94,7 +102,7 @@ namespace Microscope_Control
         int picCount = 0;
 
 
-        // The following Events are related to the automated observation
+        // The following Variables are related to the automated observation
 
         // Type definition of Automated observation
 
@@ -123,7 +131,7 @@ namespace Microscope_Control
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            LiveviewBW.RunWorkerAsync();
+            //LiveviewBW.RunWorkerAsync();
             BConnectionCBox.Items.Add("Port selection");
             BConnectionCBox.SelectedIndex = 0;
         }
@@ -156,7 +164,7 @@ namespace Microscope_Control
                 IPEndPoint MulticastEndPoint = new IPEndPoint(IPAddress.Parse("239.255.255.250"), 1900);                // Creates Endpoint to connect with camera host (Multicast messages reserved address, Sony SDK)
                 Socket UdpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);          // Creates Socket for managing network communication
                 UdpSocket.Bind(LocalEndPoint);                                                                          // Asociates Local socket to external host (Camera)
-                ConnectionTxt.Text = ("Status\r\nUDP-Socket setup finished...\r\n");
+                ConnectionTxt.Text = ("Status\r\n\r\nUDP-Socket setup finished...\r\n");
 
                 // Sends discovery request to camera host (SSDP M-SEARCH)
                 string SearchString = "M-SEARCH * HTTP/1.1\r\nHOST:239.255.255.250:1900\r\nMAN:\"ssdp:discover\"\r\nMX:2\r\nST:urn:schemas-sony-com:service:ScalarWebAPI:1\r\n\r\n";
@@ -164,15 +172,22 @@ namespace Microscope_Control
                 UdpSocket.SendTo(Encoding.UTF8.GetBytes(SearchString), SocketFlags.None, MulticastEndPoint);            // Sends M-SEARCH request (8-bit Unicode) UNICAST
                 ConnectionTxt.AppendText("M-Search sent\r\n");
 
-                // Receives discovery response from camera UNICAST (TimedOut on 30 secs)
+                // Receives discovery response from camera UNICAST (TimedOut on 10 secs)
                 byte[] ReceiveBuffer = new byte[64000];
                 int ReceivedBytes = 0;
                 Thread TimeoutThread = new Thread(ThreadProc);
                 TimeoutThread.Start();
+                i = 0;
                 while (TimeoutThread.IsAlive)                                                                                            // Received Buffered response
                 {
+                    i += 1;
+                    if (i % 950000 == 0)
+                    {
+                        ConnectionTxt.AppendText("█");
+                    }
                     if (UdpSocket.Available > 0)
                     {
+                        ConnectionTxt.AppendText("r\\nConnection established\n");
                         ReceivedBytes = UdpSocket.Receive(ReceiveBuffer, SocketFlags.None);
 
                         if (ReceivedBytes > 0)
@@ -183,6 +198,7 @@ namespace Microscope_Control
                         break;
                     }
                 }
+                TimeoutThread.Abort();
                 if (CamConStatus)
                 {
                     // Loads transparent logo to guide image (Done here to serve as a sleep function)
@@ -212,7 +228,7 @@ namespace Microscope_Control
                     CamResponse = SendRequest("actZoom", "\"in\",\"start\"");
                     getEventTxt.Text = CamResponse;
 
-                    ConnectionTxt.AppendText("Connection successful =)  \r\n");
+                    ConnectionTxt.AppendText("\r\n\rConnection successful =)  \n");
                     if (ConSuc)
                     {
                         BShutterBtn.Enabled = true;
@@ -223,7 +239,7 @@ namespace Microscope_Control
                 else
                 {
                     ConnectBtn.Enabled = true;
-                    ConnectionTxt.AppendText("Connection TimedOut =(  \r\n");
+                    ConnectionTxt.AppendText("\r\n\r\nFailed: Connection TimedOut =(  \n");
                     UdpSocket.Close();
                 }
             }
@@ -241,8 +257,7 @@ namespace Microscope_Control
                 FlagLvw = true;
                 ImgLiveview.Visible = true;
                 CamResponse = SendRequest("startLiveview", "");                             // Send action request to camera host to start liveview
-                ConnectionTxt.AppendText(CamResponse + "\r\n");
-                lvwURL = CamResponse.Substring(19).Split('\"').FirstOrDefault();            // Setup the URL for the liveview download
+                lvwURL = ReadRequestJson(CamResponse,0);                                    // Setup the URL for the liveview download
                 WebRequest lvwRequest = WebRequest.Create(lvwURL);                          // Create a request using the camera liveview URL, send HTTP GET request
                 lvwRequest.Method = "GET";
                 lvwRequest.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
@@ -258,11 +273,11 @@ namespace Microscope_Control
                 FlagLvw = false;
                 LiveviewBW.CancelAsync();
                 CamResponse = SendRequest("stopLiveview", "");                              // Send action request to camera host to stop liveview
-                ConnectionTxt.AppendText(CamResponse + "\r\n");
                 guideChkBtn.Enabled = false;
                 imgStream.Close();
                 imgReader.Close();
             }
+            ConnectionTxt.AppendText(CamResponse + "\r\n");
         }
 
         private void LiveviewTmr_Tick(object sender, EventArgs e)                               // (Replaced by Background Worker) Timer, refreshes liveview image
@@ -354,7 +369,7 @@ namespace Microscope_Control
             }
 
         }
-        
+
         private void guideRefreshBtn_Click(object sender, EventArgs e)                          // Loads image from live view to be frozen and displayed as a guide frame
         {
             ImgGuide.Location = new Point(0, 0);                                                // Ensures the reference image frame is in place
@@ -377,20 +392,32 @@ namespace Microscope_Control
             tempG.DrawImage(transparentImg, Point.Empty);                                       // Loads Tranparent(ed) image on ImgGuide
             ImgGuide.Image = transparentImg;
         }
-        
-        private string SendRequest(string action, string param)                                 // Gives format to the action request, manages sending request and receiving response. Output: Response string
+
+        private string SendRequest(params string[] data)                                        // Gives format to the action request, manages sending request and receiving response. Output: Response string
         {
-            string responseF;
+            Array.Resize(ref data, 3);                                                          // Arrange input data (Arranges a 3-item array)
+            string method = data[0];                                                            // Sets default values (there must exist a method) for parameters and version
+            string param = ("");
+            string version = ("1.0");
+            if (data[1] != null)                                                                // Assigns input values (If any)
+            {
+                param = data[1];
+            }
+            if (data[2] != null)
+            {
+                version = data[2];
+            }
+            string responseF;                                                                   // String for storing camera response (Return)
             try
             {
-                // Create POST data and convert it to a byte array (Set the ContentType property of the WebRequest to an 8-bit Unicode)
-                string postData = "{\"method\": \"" + action + "\",\"params\": [" + param + "],\"id\": 1,\"version\": \"1.0\"}";
+                // Create POST data and convert it to a byte array (Set the ContentType property of the WebRequest to an 8-bit Unicode). Data is not Serialized to JSON due that params (required property) is a C# keyword
+                string postData = "{\"method\": \"" + method + "\",\"params\": [" + param + "],\"id\": 1,\"version\": \"" + version + "\"}";
                 byte[] byteArray = Encoding.UTF8.GetBytes(postData);
 
                 // Send action request
                 WebRequest request = WebRequest.Create("http://10.0.0.1:10000/sony/camera ");                       // Create a request using the camera Action list URL
-                request.Method = "POST";
-                request.ContentType = "application/json; charset=utf-8";                                            // Set the Method property of the request to POST
+                request.Method = "POST";                                                                            // Set the Method property of the request to POST
+                request.ContentType = "application/json; charset=utf-8";                                            // Set the request content type to match JSON encoding
                 request.ContentLength = byteArray.Length;                                                           // Set the ContentLength property of the WebRequest
                 Stream dataStream = request.GetRequestStream();                                                     // Get the request stream
                 dataStream.Write(byteArray, 0, byteArray.Length);                                                   // Write the data to the request stream
@@ -403,7 +430,6 @@ namespace Microscope_Control
                 StreamReader reader = new StreamReader(dataStream);
                 string responseFromServer = reader.ReadToEnd();
                 //ConnectionTxt.AppendText(responseFromServer);
-                //var fot = responseFromServer.Substring(20).Split('\"').FirstOrDefault();
 
                 // Close Objects
                 reader.Close();                                                                                     // Closes reader, stream object and response
@@ -418,10 +444,38 @@ namespace Microscope_Control
             }
             return responseF;
         }
+        
+        private string ReadRequestJson(string json, int order, string key, int item)                                                          // Reads JSON format and returns specified property
+        {
+            RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
+            string property = myjson.result[order][key][item].ToString();
+            return property;
+        }
+
+        private string ReadRequestJson(string json, int order, string key)                                                          // Reads JSON format and returns specified property
+        {
+            RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
+            string property = myjson.result[order][key].ToString();
+            return property;
+        }
+
+        private string ReadRequestJson(string json, int order)                                                          // Reads JSON format and returns specified property
+        {
+            RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
+            string property = myjson.result[order].ToString();
+            return property;
+        }
+
+        private string ReadRequestJson(string json)                                                          // Reads JSON format and returns specified property
+        {
+            RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
+            string property = myjson.result.ToString();
+            return property;
+        }
 
         private static void ThreadProc()                                                        // Connection timer, manages timeout OnConnection to cammera
         {
-            Thread.Sleep(20000);
+            Thread.Sleep(10000);
         }
 
         private void LiveviewBW_DoWork(object sender, DoWorkEventArgs e)                        // Refreshes liveview image
@@ -508,7 +562,7 @@ namespace Microscope_Control
             catch (Exception ex)
             {
                 //MessageBox.Show(ex.Message);
-                                        // ConnectionTxt.Text = ex.Message;
+                // ConnectionTxt.Text = ex.Message;
             }
             e.Cancel = true;
         }
@@ -619,7 +673,7 @@ namespace Microscope_Control
             }
         }
 
-        
+
         // These events are provided for test purposes only Any release: please leave these as NOT VISIBLE
         //      TODO:
         //              -
@@ -627,21 +681,21 @@ namespace Microscope_Control
 
         private void getEventBtn_Click(object sender, EventArgs e)                          // Test Button (Not visible) Requests Events to camera
         {
-            //JSON.net
-            getEventTxt.Text = "";
-            CamResponse = SendRequest("getEvent", "true");                              // These are my formating steps, please do not look at them... it is actually a very bad coding
-            CamResponse = CamResponse.Replace("\",\"", "\r\n\t");
-            CamResponse = CamResponse.Replace("\":\"", ": ");
-            CamResponse = CamResponse.Replace("{\"", "{\r\n");
-            CamResponse = CamResponse.Replace("\":[", ":\r\n\t");
-            CamResponse = CamResponse.Replace("{\"", "{\r\n");
-            CamResponse = CamResponse.Replace("\"],\"", "\r\n\t\t");
-            CamResponse = CamResponse.Replace(",\"", "\r\n\t");
-            CamResponse = CamResponse.Replace("\"", "");
-            CamResponse = CamResponse.Replace("{", "");
-            CamResponse = CamResponse.Replace("{", "");
-            CamResponse = CamResponse.Replace(",", "\r\n");
-            getEventTxt.AppendText(CamResponse);
+            //************* Reads JSON format (Returns camera status) *********************
+            string json = SendRequest("getEvent", "false", "1.1");
+            var myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
+            textBox1.Text = ("");
+            //************* Visualizes JSON response **************************************
+            for (i = 0; i < myjson.result.Count; i++)
+            {
+                if ((myjson.result[i]) != null)
+                {
+                    textBox1.AppendText("\r\n" + i + ")\r\n");
+                    textBox1.AppendText(myjson.result[i].ToString());
+                }
+            }
+            //************* Visualizes Camera status **************************************
+            textBox2.Text = myjson.result[1]["cameraStatus"].ToString();
         }
 
         private void TestBtn_Click(object sender, EventArgs e)                              // Test Button (Not available) <INSERT YOUR TEST CODE HERE>
@@ -861,10 +915,10 @@ namespace Microscope_Control
         {
             BStepTxt.Text = BStepTB.Value.ToString();
         }
-        
+
         private void BSpeedTB_Scroll(object sender, EventArgs e)                            // Sends board request for changing stage moving speed on execution time
-        {                                                           
-            if (!Busy)                                                                          
+        {
+            if (!Busy)
             {
                 string posAux = Convert.ToString(BSpeedTB.Value, 2);                                // Formats data to ASCII encoding
                 int lendif = 7 - posAux.Length;
@@ -1135,7 +1189,7 @@ namespace Microscope_Control
                         string tempstring = RxString.Substring(4, RxString.Length - 4);             // Decode and allocate data
                         var temparray = tempstring.Split(',');
                         Array.Resize(ref temparray, 3);
-                        if (temparray[2]==null)
+                        if (temparray[2] == null)
                         {
                             Busy = true;
                             receivedAction = false;
