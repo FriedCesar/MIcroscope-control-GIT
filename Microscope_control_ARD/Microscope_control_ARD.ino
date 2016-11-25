@@ -213,6 +213,13 @@ void serialEvent()
       endFlag = true;
       startFlag = false;
       rxData = "";
+      ST.pin = stp;
+      ST.tHigh = 1;
+      ST.tLow = 6;
+      lPos = 0;
+      rxPos = 0;
+      Pos = 0;
+      sign = 1;
     }
 
     if (rxData == ("@"))

@@ -54,20 +54,20 @@ namespace Microscope_Control
         // Type definition of Camera related variables
 
 
-        List<byte> imgData = new List<byte>();      // Byte list for storing image data
-        Stream imgStream;                           // Data stream for image aquisition (Liveview)
-        StreamReader imgReader;                     // Stream reader for image data (Liveview)
-        int i = 0;                                  // Multipropose counter
-        int imgSize = 0;                            // Image size for data retrieval (Liveview)
-        int frameNo = 0;                            // Frame No. (Liveview)
-        int paddingSize = 0;                        // Padding size (Liveview)
-        bool FlagLvw = false;                       // Flag to retrieve action on liveview event                   
-        bool CamConStatus = false;                  // Camera connection flag
-        byte[] buffer = new byte[520];              // Data buffer for liveview
-        byte[] bufferAux = new byte[4];             // Data auxiliar buffer for liveview
-        byte payloadType = 0;                       // Stores the payload type from liveview stream
-        string CamResponse = "";                    // Retrieves the camera response when any action is invoked
-        string lvwURL = "";                         // Stores camera URL for liveview
+        List<byte> imgData = new List<byte>();              // Byte list for storing image data
+        Stream imgStream;                                   // Data stream for image aquisition (Liveview)
+        StreamReader imgReader;                             // Stream reader for image data (Liveview)
+        int i = 0;                                          // Multipropose counter
+        int imgSize = 0;                                    // Image size for data retrieval (Liveview)
+        int frameNo = 0;                                    // Frame No. (Liveview)
+        int paddingSize = 0;                                // Padding size (Liveview)
+        bool FlagLvw = false;                               // Flag to retrieve action on liveview event                   
+        bool CamConStatus = false;                          // Camera connection flag
+        byte[] buffer = new byte[520];                      // Data buffer for liveview
+        byte[] bufferAux = new byte[4];                     // Data auxiliar buffer for liveview
+        byte payloadType = 0;                               // Stores the payload type from liveview stream
+        string CamResponse = "";                            // Retrieves the camera response when any action is invoked
+        string lvwURL = "";                                 // Stores camera URL for liveview
         //bool timeout = false;
         bool shutterFlag = false;
         //private static Object locker = new Object();
@@ -201,6 +201,12 @@ namespace Microscope_Control
                 TimeoutThread.Abort();
                 if (CamConStatus)
                 {
+                    // Setups form objects OnConnect, Zooms camera in and sends request toreceive full resolution images.
+                    ConnectionTxt.AppendText("\r\n\rConnection successful =)  \n");
+                    CamResponse = SendRequest("setPostviewImageSize", "\"Original\"");
+                    CamResponse = SendRequest("actZoom", "\"in\",\"start\"");
+                    getEventTxt.Text = CamResponse;
+
                     // Loads transparent logo to guide image (Done here to serve as a sleep function)
                     Bitmap referenceImg = new Bitmap(ImgLogo.Image);
                     Bitmap transparentImg = new Bitmap(ImgLogo.Image.Width, ImgLogo.Image.Height);
@@ -219,22 +225,19 @@ namespace Microscope_Control
                     tempG.DrawImage(transparentImg, Point.Empty);
                     ImgGuide.Image = transparentImg;
                     ImgGuide.Location = new Point(0, 0);
-
-                    // Setups form objects OnConnect, Zooms camera in and sends request toreceive full resolution images.
+                    //**************** Control Visualization *************
                     ConnectionTxt.Visible = false;
                     ConnectionTxt.Text = "";
                     LiveviewBtn.Enabled = true;
-                    CamResponse = SendRequest("setPostviewImageSize", "\"Original\"");
-                    CamResponse = SendRequest("actZoom", "\"in\",\"start\"");
-                    getEventTxt.Text = CamResponse;
-
-                    ConnectionTxt.AppendText("\r\n\rConnection successful =)  \n");
+                    resolutionChkBtn.Enabled = true;
+                    HPShutterChkBtn.Enabled = true;
                     if (ConSuc)
                     {
                         BShutterBtn.Enabled = true;
                         StartBtn.Enabled = true;
                         ManageChkBtn.Enabled = true;
                     }
+                    //******************************************************
                 }
                 else
                 {
@@ -280,96 +283,6 @@ namespace Microscope_Control
             ConnectionTxt.AppendText(CamResponse + "\r\n");
         }
 
-        private void LiveviewTmr_Tick(object sender, EventArgs e)                               // (Replaced by Background Worker) Timer, refreshes liveview image
-        {
-            //{
-            //    using (var memstream = new MemoryStream())
-            //    {
-            //        imgData = new List<byte>();
-            //        buffer = new byte[520];
-            //        bufferAux = new byte[4];
-            //        payloadType = 0;
-            //        imgSize = 0;
-            //        frameNo = -1;
-            //        paddingSize = 0;
-
-            //        GetHeader:                                                          // Retrieves a byte(s) from the stream to check if it corresponds to Sony header construction
-
-            //        // Common Header (8 Bytes)
-            //        //buffer = new byte[520];
-            //        imgReader.BaseStream.Read(buffer, 0, 1);                            // Seeks for start byte
-            //        var start = buffer[0];
-            //        if (start != 0xff)
-            //            goto GetHeader;
-
-            //        //buffer = new byte[520];
-            //        imgReader.BaseStream.Read(buffer, 0, 1);                            // Stores payload Type
-            //        payloadType = (buffer[0]);
-            //        if (!((payloadType == 1) || (payloadType == 2)))
-            //            goto GetHeader;
-
-            //        //buffer = new byte[520];
-            //        imgReader.BaseStream.Read(buffer, 0, 2);                            // Stores Frame Number depending Payload type
-            //        if (payloadType == 1)
-            //            frameNo = BitConverter.ToUInt16(buffer, 0);
-
-            //        imgReader.BaseStream.Read(buffer, 0, 4);                            // Discards expected Time stamp
-
-            //        // Payload header (128 bytes)
-            //        //buffer = new byte[520];
-            //        imgReader.BaseStream.Read(buffer, 0, 4);
-            //        if (!((buffer[0] == 0x24) & (buffer[1] == 0x35) & (buffer[2] == 0x68) & (buffer[3] == 0x79)))
-            //            goto GetHeader;                                                 // If the start code does not correspond to fixed code (0x24, 0x35, 0x68, 0x79), starts over
-
-            //        //bufferAux = new byte[4];
-            //        imgReader.BaseStream.Read(bufferAux, 0, 4);
-            //        paddingSize = bufferAux[3];
-            //        bufferAux[3] = bufferAux[2];
-            //        bufferAux[2] = bufferAux[1];
-            //        bufferAux[1] = bufferAux[0];
-            //        bufferAux[0] = 0;
-            //        Array.Reverse(bufferAux);
-            //        imgSize = BitConverter.ToInt32(bufferAux, 0);                       // Reads and translates Data stream size
-
-            //        if (payloadType == 1)                                               // Case JPEG data
-            //        {
-            //            imgReader.BaseStream.Read(buffer, 0, 120);
-            //            while (imgData.Count < imgSize)
-            //            {
-            //                //buffer = new byte[520];
-            //                imgReader.BaseStream.Read(buffer, 0, 1);
-            //                imgData.Add(buffer[0]);
-            //            }
-            //        }
-
-            //        //getEventTxt.AppendText("Image size: " + imgData.Count.ToString());
-            //        MemoryStream stream = new MemoryStream(imgData.ToArray());
-            //        BinaryReader reader = new BinaryReader(stream);
-            //        Bitmap bmpImage = (Bitmap)Image.FromStream(stream);
-
-            //        if (ImgLiveview.Image != null)
-            //            ImgLiveview.Image.Dispose();
-
-            //        ImgLiveview.Image = bmpImage;
-            //    }
-            //}
-        }
-
-        private void guideChkBtn_CheckedChanged(object sender, EventArgs e)                     // Visualize frozen image to use it as a guide in liveview
-        {
-            if (guideChkBtn.Checked)
-            {
-                ImgGuide.Visible = true;
-                guideRefreshBtn.Enabled = true;
-            }
-            else
-            {
-                ImgGuide.Visible = false;
-                guideRefreshBtn.Enabled = false;
-            }
-
-        }
-
         private void guideRefreshBtn_Click(object sender, EventArgs e)                          // Loads image from live view to be frozen and displayed as a guide frame
         {
             ImgGuide.Location = new Point(0, 0);                                                // Ensures the reference image frame is in place
@@ -393,13 +306,52 @@ namespace Microscope_Control
             ImgGuide.Image = transparentImg;
         }
 
-        private string SendRequest(params string[] data)                                        // Gives format to the action request, manages sending request and receiving response. Output: Response string
+        private void guideChkBtn_CheckedChanged(object sender, EventArgs e)                     // Visualize frozen image to use it as a guide in liveview
         {
-            Array.Resize(ref data, 3);                                                          // Arrange input data (Arranges a 3-item array)
-            string method = data[0];                                                            // Sets default values (there must exist a method) for parameters and version
+            if (guideChkBtn.Checked)
+            {
+                ImgGuide.Visible = true;
+                guideRefreshBtn.Enabled = true;
+            }
+            else
+            {
+                ImgGuide.Visible = false;
+                guideRefreshBtn.Enabled = false;
+            }
+
+        }
+
+        private void resolutionChkBtn_CheckedChanged(object sender, EventArgs e)
+        {
+            if (resolutionChkBtn.Checked)
+            {
+                CamResponse = SendRequest("setPostviewImageSize", "\"Original\"");
+            }
+            else
+            {
+                CamResponse = SendRequest("setPostviewImageSize", "\"2M\"");
+            }
+        }
+
+        private void HPShutterChkBtn_CheckedChanged(object sender, EventArgs e)
+        {
+            if (HPShutterChkBtn.Checked)
+            {
+                CamResponse = SendRequest("actHalfPressShutter");
+            }
+            else
+            {
+                CamResponse = SendRequest("cancelHalfPressShutter");
+            }
+        }
+
+        private string SendRequest(params string[] data)                                        // Gives format to the action request, manages sending request and receiving response. Output: Response JSON string
+        {
+            Array.Resize(ref data, 3);                                                                              // Arrange input data (Arranges a 3-item array)
+            string method = data[0];                                                                                // Sets default values for parameters and version
             string param = ("");
             string version = ("1.0");
-            if (data[1] != null)                                                                // Assigns input values (If any)
+            if (data[1] != null)                                                                                    // Assigns input values (If any)
             {
                 param = data[1];
             }
@@ -407,7 +359,7 @@ namespace Microscope_Control
             {
                 version = data[2];
             }
-            string responseF;                                                                   // String for storing camera response (Return)
+            string responseF;                                                                                       // String for storing camera response (Return)
             try
             {
                 // Create POST data and convert it to a byte array (Set the ContentType property of the WebRequest to an 8-bit Unicode). Data is not Serialized to JSON due that params (required property) is a C# keyword
@@ -445,28 +397,31 @@ namespace Microscope_Control
             return responseF;
         }
         
-        private string ReadRequestJson(string json, int order, string key, int item)                                                          // Reads JSON format and returns specified property
+        private string ReadRequestJson(string json, int order, string key, int item)            // Reads JSON format and returns specified property: 
         {
             RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
             string property = myjson.result[order][key][item].ToString();
             return property;
         }
-
-        private string ReadRequestJson(string json, int order, string key)                                                          // Reads JSON format and returns specified property
+        private string ReadRequestJson(string json, int order, string key)                      //      Uses the JSON string, the order number and the string key (Ref. Sony remote camera API reference document) 
         {
             RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
             string property = myjson.result[order][key].ToString();
             return property;
         }
-
-        private string ReadRequestJson(string json, int order)                                                          // Reads JSON format and returns specified property
+        private string ReadRequestJson(string json, int order, int key)                         //      Uses the JSON string, the order number and number key (Ref. Sony remote camera API reference document)
+        {
+            RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
+            string property = myjson.result[order][key].ToString();
+            return property;
+        }
+        private string ReadRequestJson(string json, int order)                                  //      Uses the JSON string and the order number (Ref. Sony remote camera API reference document)
         {
             RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
             string property = myjson.result[order].ToString();
             return property;
         }
-
-        private string ReadRequestJson(string json)                                                          // Reads JSON format and returns specified property
+        private string ReadRequestJson(string json)                                             //      Uses only the JSON string (Ref. Sony remote camera API reference document)
         {
             RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
             string property = myjson.result.ToString();
@@ -478,7 +433,7 @@ namespace Microscope_Control
             Thread.Sleep(10000);
         }
 
-        private void LiveviewBW_DoWork(object sender, DoWorkEventArgs e)                        // Refreshes liveview image
+        private void LiveviewBW_DoWork(object sender, DoWorkEventArgs e)                        // Request liveview image, reads and stores image 
         {
             BackgroundWorker bw = sender as BackgroundWorker;
             try
@@ -597,9 +552,10 @@ namespace Microscope_Control
             WebClient imageClient = new WebClient();                                                // Initializes webclient for image managing
             onSave = true;                                                                          // Sets OnSave flag
             CamResponse = SendRequest("actTakePicture", "");                                        // Sends HTTP GET request, retrieves image URL
-            string imgURL = CamResponse.Substring(20).Split('\"').FirstOrDefault();
+            string imgURL = ReadRequestJson(CamResponse, 0, 0);                                            //NON JSON SOLUTION: CamResponse.Substring(20).Split('\"').FirstOrDefault();
             string name = "";
             string path = "";
+            ;
             if (shutterFlag)                                                                        // On shutter action, saves file to location
             {
                 name = ("P" + picCount.ToString("D4") + ".jpg");
@@ -679,7 +635,7 @@ namespace Microscope_Control
         //              -
 
 
-        private void getEventBtn_Click(object sender, EventArgs e)                          // Test Button (Not visible) Requests Events to camera
+        private void getEventBtn_Click(object sender, EventArgs e)                              // Test Button (Not visible) Requests Events to camera
         {
             //************* Reads JSON format (Returns camera status) *********************
             string json = SendRequest("getEvent", "false", "1.1");
@@ -698,32 +654,16 @@ namespace Microscope_Control
             textBox2.Text = myjson.result[1]["cameraStatus"].ToString();
         }
 
-        private void TestBtn_Click(object sender, EventArgs e)                              // Test Button (Not available) <INSERT YOUR TEST CODE HERE>
+        private void TestBtn_Click(object sender, EventArgs e)                                  // Test Button (Not available) <INSERT YOUR TEST CODE HERE>
         {
-            BStateLbl.Text = RxString;
-
-            //*******************
-
-            //string posAux = Convert.ToString(BStepTB.Value, 2);
-            //string posAux2 = posAux;
-            //int lendif = 21 - posAux.Length;
-            //for (i = 0; i < lendif; i++)
-            //    posAux = '0'+posAux;
-            //pos1 = new byte[] { Convert.ToByte(posAux.Substring(0, 7), 2) };
-            //pos2 = new byte[] { Convert.ToByte(posAux.Substring(7, 7), 2) };
-            //pos3 = new byte[] { Convert.ToByte(posAux.Substring(14,7), 2)};
-            //;
-            //BCycleTxt.Text = (BitConverter.ToString(pos1) + BitConverter.ToString(pos2) + BitConverter.ToString(pos3));
-
-            //********************
-
+            //************ Take picture ************************************
             //CamResponse = SendRequest("actTakePicture", "");
-            //string imgURL = CamResponse.Substring(20).Split('\"').FirstOrDefault();
-            //ImgAux.ImageLocation = imgURL;
-            //timer1.Enabled = !timer1.Enabled;
+
+            //************ Check received info from board ******************
+            BStateLbl.Text = RxString;
         }
 
-        private void timer1_Tick(object sender, EventArgs e)                                // Test timer (Not available) <INSERT YOUR TEST CODE HERE>
+        private void timer1_Tick(object sender, EventArgs e)                                    // Test timer (Not available) <INSERT YOUR TEST CODE HERE>
         {
             if (i >= 1)
             {
@@ -741,7 +681,7 @@ namespace Microscope_Control
             }
         }
 
-        private void pictureBox3_LoadCompleted(object sender, AsyncCompletedEventArgs e)    // Test image (Not loaded)
+        private void pictureBox3_LoadCompleted(object sender, AsyncCompletedEventArgs e)        // Test image, load finished (Not loaded)
         {
             //if (OnCapture)
             //{
@@ -763,7 +703,7 @@ namespace Microscope_Control
         //              - Setup actions on bosard communication session error
 
 
-        private void comboBox1_DropDown(object sender, EventArgs e)                         // Sniffs for serial ports connected to the computer (Arduino connects vias Serial)
+        private void comboBox1_DropDown(object sender, EventArgs e)                             // Sniffs for serial ports connected to the computer (Arduino connects vias Serial)
         {
             string[] ports = SerialPort.GetPortNames();                                             // Sniffs for connected ports
             BConnectionCBox.Items.Clear();                                                          // Cleans previous data in Combobox
@@ -775,7 +715,7 @@ namespace Microscope_Control
             }
         }
 
-        private void BConnectionCBox_SelectedIndexChanged(object sender, EventArgs e)       // Enables connection button on serial type port selection (i.e. if a serial port is selecten in the combo box)
+        private void BConnectionCBox_SelectedIndexChanged(object sender, EventArgs e)           // Enables connection button on serial type port selection (i.e. if a serial port is selecten in the combo box)
         {
             if (BConnectionCBox.Text.Contains("COM"))
                 BConnectBtn.Enabled = true;
@@ -783,7 +723,7 @@ namespace Microscope_Control
                 BConnectBtn.Enabled = false;
         }
 
-        private void BConnectBtn_Click(object sender, EventArgs e)                          // Starts connection routine (No error handling)
+        private void BConnectBtn_Click(object sender, EventArgs e)                              // Starts connection routine (No error handling)
         {
             conTO = 0;
             BStateLbl.Text = ("Status");
@@ -793,13 +733,7 @@ namespace Microscope_Control
             }
             if (PortSel)
             {
-                if (serialPort1.IsOpen)                                             // If port is open, close port (Manages controller labels)
-                {
-                    BStateLbl.Text = ("Disconnected...");
-                    Invoke(new EventHandler(Disconnect));
-                    BConnectBtn.Text = ("Connect Board");
-                }
-                if (!serialPort1.IsOpen & PortSel)                                  // If port is closed, and a valid serial port is selected, allow connection
+                if (!serialPort1.IsOpen & PortSel)                             // If port is closed, and a valid serial port is selected, allow connection
                 {
                     serialPort1.PortName = BConnectionCBox.Text;                    // Configurates the serial port
                     serialPort1.BaudRate = 57600;
@@ -814,40 +748,43 @@ namespace Microscope_Control
                     serialPort1.WriteLine("");                                      // Wakeup call
                     serialPort1.WriteLine(TxString);                                // Sends Connection Request
                 }
+                else if (serialPort1.IsOpen)                                             // If port is open, close port (Manages controller labels)
+                {
+                    BStateLbl.Text = ("Disconnected...");
+                    Invoke(new EventHandler(Disconnect));
+                    BConnectBtn.Text = ("Connect Board");
+                }
             }
         }
 
-        private void BShutterBtn_Click(object sender, EventArgs e)                          // Starts a shutter routine, calls Background Worker
+        private void BShutterBtn_Click(object sender, EventArgs e)                              // Starts a shutter routine, calls Background Worker
         {
             shutterFlag = true;
             BShutterBtn.Enabled = false;
             ShutterBW.RunWorkerAsync();
         }
 
-        private void BSaveBtn_Click(object sender, EventArgs e)                             // Saves data on calibration
+        private void BSaveBtn_Click(object sender, EventArgs e)                                 // Saves data on calibration
         {
             Busy = true;
             TxString = ("@" + Encoding.ASCII.GetString(session) + "V" + BStepTxt.Text + "s" + BCycleTxt.Text + "c" + BTimeTxt.Text + "t");
             serialPort1.WriteLine(TxString);
         }
 
-        private void BStepTB_Scroll(object sender, EventArgs e)                             // Sends board request for moving according to Trackbar position on execution time
+        private void BStepTB_Scroll(object sender, EventArgs e)
         {
             PosRef = BStepTB.Value;                                                                 // Stores user position of the Trackbar, this is the position reference to verify the stage movement
-            ;
+            textBox2.Text = PosRef.ToString();
             if (!Busy)                                                                              // Send data in execution timeif busy flag is false (When position is not fully attained, the program will check board reported position and stored position and send the difference)
             {
                 Busy = true;                                                                        // Sets busy flag
                 BStepTBLbl.Text = ("Step: " + PosRef);                                              // Update position on visualization
-                MoveStage(BStepTB.Value, 'P');                                                      // Request stage movement (managed by MoveStage function)
-            }
-            else
-            {
-                Pos = BStepTB.Value;                                                                // Updates position data
+                MoveStage(BStepTB.Value, 'P');
+                Pos = BStepTB.Value;                                                                // Request stage movement (managed by MoveStage function)
             }
         }
 
-        private void BStepMinBtn_Click(object sender, EventArgs e)                          // Sends board request and sets current Trackbar position as Origin
+        private void BStepMinBtn_Click(object sender, EventArgs e)                              // Sends board request and sets current Trackbar position as Origin
         {
             Busy = true;                                                                            // Sets busy flag
             TxString = ("@" + Encoding.ASCII.GetString(session) + "O");                             // Formats Reset position board request
@@ -858,25 +795,38 @@ namespace Microscope_Control
             serialPort1.WriteLine(TxString);                                                        // Send Reset position board request
         }
 
-        private void BStepMaxBtn_Click(object sender, EventArgs e)                          // Sets current Trackbar position as Max Step position
+        private void BStepMaxBtn_Click(object sender, EventArgs e)                              // Sets current Trackbar position as Max Step position
         {
             BStepTB.Maximum = BStepTB.Value;                                                        // Retrieves Trackbar current position
             BStepMaxLbl.Text = ("Max: " + BStepTB.Maximum);                                         // Updates position visualization
         }
 
-        private void BStepMax1Btn_Click(object sender, EventArgs e)                         // Diminishes step Max step on Trackbar
+        private void BStepMax1Btn_Click(object sender, EventArgs e)                             // Diminishes step Max step on Trackbar
         {
-            BStepTB.Maximum = BStepTB.Maximum - 1;                                                  // Retrieves Trackbar current position
-            BStepMaxLbl.Text = ("Max: " + BStepTB.Maximum);                                         // Updates position visualization
+            if (BStepTB.Maximum > 0)                                                        // No negative Value is accepted
+            {
+                if (BStepTB.Maximum == BStepTB.Value)                                       // In case the scroll value is at maximum value, then move scroll accordingly
+                {
+                    BStepTB.Value = BStepTB.Value - 1;                                      // Diminishes scroll value
+                    BStepTB_Scroll(sender, e);                                              // NOT THE BEST PRACTICE: It calls the scroll "Scroll" action (Moves the motor and adjusts the form objects)
+                }
+                BStepTB.Maximum = BStepTB.Maximum - 1;                                      // Retrieves Trackbar current position
+                BStepMaxLbl.Text = ("Max: " + BStepTB.Maximum);                             // Updates position visualization
+            }
+            else
+            {
+                BStepMax1Btn.Enabled = false;
+            }
         }
 
-        private void BStepMax2Btn_Click(object sender, EventArgs e)                         // Allows bigger step Max step on Trackbar
+        private void BStepMax2Btn_Click(object sender, EventArgs e)                             // Allows bigger step Max step on Trackbar
         {
+            BStepMax1Btn.Enabled = true;
             BStepTB.Maximum = BStepTB.Maximum + 1;
             BStepMaxLbl.Text = ("Max: " + BStepTB.Maximum);
         }
 
-        private void BCycle1Btn_Click(object sender, EventArgs e)                           // Sends board request to move a complete cycle (Backwards)
+        private void BCycle1Btn_Click(object sender, EventArgs e)                               // Sends board request to move a complete cycle (Backwards)
         {
             if (!Busy)
             {
@@ -891,7 +841,7 @@ namespace Microscope_Control
             }
         }
 
-        private void BCycle2Btn_Click(object sender, EventArgs e)                           // Sends board request to move a complete cycle (Foward)
+        private void BCycle2Btn_Click(object sender, EventArgs e)                               // Sends board request to move a complete cycle (Foward)
         {
             if (!Busy)
             {
@@ -906,17 +856,17 @@ namespace Microscope_Control
             }
         }
 
-        private void BCycleSetBtn_Click(object sender, EventArgs e)                         // Updates step setup to current step count
+        private void BCycleSetBtn_Click(object sender, EventArgs e)                             // Updates step setup to current step count
         {
             BCycleTxt.Text = BCycleCountLbl.Text;
         }
 
-        private void BStepSetBtn_Click(object sender, EventArgs e)                                  // Updates step setup to current Trackbar position
+        private void BStepSetBtn_Click(object sender, EventArgs e)                              // Updates step setup to current Trackbar position
         {
             BStepTxt.Text = BStepTB.Value.ToString();
         }
 
-        private void BSpeedTB_Scroll(object sender, EventArgs e)                            // Sends board request for changing stage moving speed on execution time
+        private void BSpeedTB_Scroll(object sender, EventArgs e)                                // Sends board request for changing stage moving speed on execution time
         {
             if (!Busy)
             {
@@ -931,7 +881,7 @@ namespace Microscope_Control
             }
         }
 
-        private void uStepChkBtn_CheckedChanged(object sender, EventArgs e)                 // Sends board request for uStep activation (Format and sends request depending case activation/deactivation)
+        private void uStepChkBtn_CheckedChanged(object sender, EventArgs e)                     // Sends board request for uStep activation (Format and sends request depending case activation/deactivation)
         {
             Busy = true;
             if (uStepChkBtn.Checked)
@@ -945,7 +895,7 @@ namespace Microscope_Control
             serialPort1.WriteLine(TxString);
         }
 
-        private void reverseChkBtn_CheckedChanged(object sender, EventArgs e)               // Sends board request for reverse activation (Format and sends request depending case forward/backwards)
+        private void reverseChkBtn_CheckedChanged(object sender, EventArgs e)                   // Sends board request for reverse activation (Format and sends request depending case forward/backwards)
         {
             Busy = true;
             if (reverseChkBtn.Checked)
@@ -959,7 +909,7 @@ namespace Microscope_Control
             serialPort1.WriteLine(TxString);
         }
 
-        private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e) // Actions on connection, manages received requests
+        private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)     // Actions on connection, manages received requests
         {
             RxString = serialPort1.ReadExisting();
             if (!ConSuc)                                                                            // Activates connection routine if no connection is stablished
@@ -974,7 +924,7 @@ namespace Microscope_Control
             serialPort1.DiscardInBuffer();
         }
 
-        private void Connect(object sender, EventArgs e)                                    // Manages on connection actions. This routine has been designed in order to avoid communnication errors (Tested on errors, the normal behavior should not have any)
+        private void Connect(object sender, EventArgs e)                                        // Manages on connection actions. This routine has been designed in order to avoid communnication errors (Tested on errors, the normal behavior should not have any)
         {
             if (RxString.Contains("COMSTART"))                                                      // on communication request, "COMSTART" is the identifier generated on the board. This instruction comes with an extra byte, session, which is used along the process to verify proper work.
             {
@@ -987,35 +937,18 @@ namespace Microscope_Control
                 {
                     BStateLbl.Text = (BStateLbl.Text + "\nPort: " + serialPort1.PortName.ToString() + "\n" + serialPort1.BaudRate.ToString() + " bps\nConnection successful!!! :)");
                     ConSuc = true;
+
                     // Form Object visualization routine
-                    BSaveBtn.Enabled = true;
-                    BStepMinBtn.Enabled = true;
-                    BStepMaxBtn.Enabled = true;
-                    BStepSetBtn.Enabled = true;
-                    BCycle2Btn.Enabled = true;
-                    BCycleSetBtn.Enabled = true;
+                    foreach (Control control in BoardPanel.Controls)
+                    {
+                        control.Enabled = true;
+                    }
                     if (CamConStatus)
                     {
                         BShutterBtn.Enabled = true;
                         StartBtn.Enabled = true;
                         ManageChkBtn.Enabled = true;
                     }
-                    BStepMax1Btn.Enabled = true;
-                    BStepMax2Btn.Enabled = true;
-                    BSpeedTB.Enabled = true;
-                    BStepTB.Enabled = true;
-                    BStepLbl.Enabled = true;
-                    BCycleLbl.Enabled = true;
-                    BTimeLbl.Enabled = true;
-                    BCycleCountLbl.Enabled = true;
-                    BSpeedTBLbl.Enabled = true;
-                    BStepTBLbl.Enabled = true;
-                    BStepMaxLbl.Enabled = true;
-                    BStepTxt.Enabled = true;
-                    BCycleTxt.Enabled = true;
-                    BTimeTxt.Enabled = true;
-                    uStepChkBtn.Enabled = true;
-                    reverseChkBtn.Enabled = true;
                 }
                 if (serialPort1.IsOpen)                                                             // On success, manages control label and request information (step, cycle and time), if not, sends error msg
                 {
@@ -1043,7 +976,7 @@ namespace Microscope_Control
                 PortSel = true;
                 session = new byte[] { Convert.ToByte(rnd.Next(1, 128)) };                          // Reconstruct comunication request (session number regenerated)
                 TxString = ("COMREQU" + Encoding.ASCII.GetString(session));
-                BStateLbl.Text = ("\nAttempt" + conTO);
+                BStateLbl.Text = ("Status\nAttempts: " + conTO);
                 getEventTxt.Text = TxString;
                 getEventTxt.AppendText(BitConverter.ToString(session));
                 serialPort1.WriteLine(TxString);                                                    // Sends communication request
@@ -1057,7 +990,7 @@ namespace Microscope_Control
             }
         }
 
-        private void Disconnect(object sender, EventArgs e)                                 // Disconnection routine
+        private void Disconnect(object sender, EventArgs e)                                     // Disconnection routine
         {
             TxString = ("DISCONNECT");
             serialPort1.WriteLine(TxString);                                                        // Send Disconnection request (board's led will blink three times)
@@ -1066,33 +999,19 @@ namespace Microscope_Control
             ConSuc = false;
             PortSel = false;
 
-            BSpeedTB.Value = 6;                                                                     // Manages form layout (Disable microscope control buttons) TODO: Find a more ellegant way to do this
+            // Form Object visualization routine
+            foreach (Control control in BoardPanel.Controls)
+            {
+                control.Enabled = false;
+            }
+            BSpeedTB.Value = 3;                                                                     // Manages form layout (Disable microscope control buttons) TODO: Find a more ellegant way to do this
             BStepTB.Value = 0;
-            BSaveBtn.Enabled = false;
-            BStepMinBtn.Enabled = false;
-            BStepMaxBtn.Enabled = false;
-            BStepSetBtn.Enabled = false;
-            BCycle1Btn.Enabled = false;
-            BCycle2Btn.Enabled = false;
-            BCycleSetBtn.Enabled = false;
+            BStepTxt.Text = ("");
+            BCycleTxt.Text = ("");
+            BTimeTxt.Text = ("");
             BShutterBtn.Enabled = false;
             StartBtn.Enabled = false;
-            BStepMax1Btn.Enabled = false;
-            BStepMax2Btn.Enabled = false;
-            BSpeedTB.Enabled = false;
-            BStepTB.Enabled = false;
-            BStepLbl.Enabled = false;
-            BCycleLbl.Enabled = false;
-            BTimeLbl.Enabled = false;
-            BCycleCountLbl.Enabled = false;
-            BSpeedTBLbl.Enabled = false;
-            BStepTBLbl.Enabled = false;
-            BStepMaxLbl.Enabled = false;
-            BStepTxt.Enabled = false;
-            BCycleTxt.Enabled = false;
-            BTimeTxt.Enabled = false;
-            uStepChkBtn.Enabled = false;
-            reverseChkBtn.Enabled = false;
+            ManageChkBtn.Enabled = false;
         }
 
         //********************* Move Instuction command set and answer *********************
@@ -1111,6 +1030,7 @@ namespace Microscope_Control
         //                      1st byte: Position High byte
         //                      2nd byte: Position Low byte
         //                      3rd byte: 0x0A (Line carrier)
+        //                      4th byte: 0x0A (Line carrier)
         //                  Received: MF
         //              I: Request board data (Step, cycle and time; saved on board's EEPROM)
         //                  Received: IF
@@ -1158,7 +1078,7 @@ namespace Microscope_Control
         //                  Received: RF
         //***********************************************************************************
 
-        private void ComInstruction(object sender, EventArgs e)                             // Manages received instructions from board (and actions on request)
+        private void ComInstruction(object sender, EventArgs e)                                 // Manages received instructions from board (and actions on request)
         {
             bool receivedAction = false;
             string lookup = "";
@@ -1174,10 +1094,12 @@ namespace Microscope_Control
                 switch (command)                                                                    // Reads command and checks action (or none)
                 {
                     case "MF":                                                                      // Move Finished (Answers to 'P' request)
+                        textBox1.Text = (Pos + ", " + PosRef);
                         receivedAction = true;
                         if (Pos == PosRef)                                                          // Check if position is up-to-date
                         {
                             Busy = false;
+                            BStateLbl.Text = ("Move Finished");
                             break;
                         }
                         BStepTBLbl.Text = ("Step: " + PosRef);                                      // Moves stage if position has not been reached (particularly useful when movement is slow)
@@ -1252,15 +1174,13 @@ namespace Microscope_Control
             }
         }
 
-        private void MoveStage(int steps, char inst)                                        // Manages stage movement (used in board request 'P', 'S' and 'Z')
+        private void MoveStage(int steps, char inst)                                            // Manages stage movement (used in board request 'P', 'S' and 'Z')
         {
             Pos = steps;
             byte[] bytePos = BitConverter.GetBytes(steps);
-            byte instruction = Convert.ToByte(inst);
-            //byte[] sendthis = new byte[] { 64, session[0], Convert.ToByte(inst), bytePos[0], bytePos[1], 0x0A };
             byte[] sendthis = new byte[] { 64, session[0], Convert.ToByte(inst), bytePos[0], bytePos[1], 0x0A, 0X0A };
             BStateLbl.Text = ("Moving...");
-            serialPort1.Write(sendthis, 0, 7);
+            serialPort1.Write(sendthis, 0, sendthis.Length);
             ;
         }
 
@@ -1464,6 +1384,93 @@ namespace Microscope_Control
                 SystemSounds.Beep.Play();
                 OnCapture = true;
                 StartCapture();
+            }
+        }
+
+        private void LiveviewTmr_Tick(object sender, EventArgs e)                               // (Replaced by Background Worker) Timer, refreshes liveview image
+        {
+            //{
+            //    using (var memstream = new MemoryStream())
+            //    {
+            //        imgData = new List<byte>();
+            //        buffer = new byte[520];
+            //        bufferAux = new byte[4];
+            //        payloadType = 0;
+            //        imgSize = 0;
+            //        frameNo = -1;
+            //        paddingSize = 0;
+
+            //        GetHeader:                                                          // Retrieves a byte(s) from the stream to check if it corresponds to Sony header construction
+
+            //        // Common Header (8 Bytes)
+            //        //buffer = new byte[520];
+            //        imgReader.BaseStream.Read(buffer, 0, 1);                            // Seeks for start byte
+            //        var start = buffer[0];
+            //        if (start != 0xff)
+            //            goto GetHeader;
+
+            //        //buffer = new byte[520];
+            //        imgReader.BaseStream.Read(buffer, 0, 1);                            // Stores payload Type
+            //        payloadType = (buffer[0]);
+            //        if (!((payloadType == 1) || (payloadType == 2)))
+            //            goto GetHeader;
+
+            //        //buffer = new byte[520];
+            //        imgReader.BaseStream.Read(buffer, 0, 2);                            // Stores Frame Number depending Payload type
+            //        if (payloadType == 1)
+            //            frameNo = BitConverter.ToUInt16(buffer, 0);
+
+            //        imgReader.BaseStream.Read(buffer, 0, 4);                            // Discards expected Time stamp
+
+            //        // Payload header (128 bytes)
+            //        //buffer = new byte[520];
+            //        imgReader.BaseStream.Read(buffer, 0, 4);
+            //        if (!((buffer[0] == 0x24) & (buffer[1] == 0x35) & (buffer[2] == 0x68) & (buffer[3] == 0x79)))
+            //            goto GetHeader;                                                 // If the start code does not correspond to fixed code (0x24, 0x35, 0x68, 0x79), starts over
+
+            //        //bufferAux = new byte[4];
+            //        imgReader.BaseStream.Read(bufferAux, 0, 4);
+            //        paddingSize = bufferAux[3];
+            //        bufferAux[3] = bufferAux[2];
+            //        bufferAux[2] = bufferAux[1];
+            //        bufferAux[1] = bufferAux[0];
+            //        bufferAux[0] = 0;
+            //        Array.Reverse(bufferAux);
+            //        imgSize = BitConverter.ToInt32(bufferAux, 0);                       // Reads and translates Data stream size
+
+            //        if (payloadType == 1)                                               // Case JPEG data
+            //        {
+            //            imgReader.BaseStream.Read(buffer, 0, 120);
+            //            while (imgData.Count < imgSize)
+            //            {
+            //                //buffer = new byte[520];
+            //                imgReader.BaseStream.Read(buffer, 0, 1);
+            //                imgData.Add(buffer[0]);
+            //            }
+            //        }
+
+            //        //getEventTxt.AppendText("Image size: " + imgData.Count.ToString());
+            //        MemoryStream stream = new MemoryStream(imgData.ToArray());
+            //        BinaryReader reader = new BinaryReader(stream);
+            //        Bitmap bmpImage = (Bitmap)Image.FromStream(stream);
+
+            //        if (ImgLiveview.Image != null)
+            //            ImgLiveview.Image.Dispose();
+
+            //        ImgLiveview.Image = bmpImage;
+            //    }
+            //}
+        }
+
+        private void BMAuxChkBtn_CheckedChanged(object sender, EventArgs e)
+        {
+            if (BMAuxChkBtn.Checked)
+            {
+                BoardAuxPanel.Visible = true;
+            }
+            else
+            {
+                BoardAuxPanel.Visible = false;
             }
         }
     }
