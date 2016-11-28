@@ -86,9 +86,11 @@
             this.resolutionChkBtn = new System.Windows.Forms.CheckBox();
             this.HPShutterChkBtn = new System.Windows.Forms.CheckBox();
             this.BoardPanel = new System.Windows.Forms.Panel();
+            this.BSpeedImg = new System.Windows.Forms.PictureBox();
             this.BMAuxChkBtn = new System.Windows.Forms.CheckBox();
             this.TestControlPanel = new System.Windows.Forms.Panel();
             this.BoardAuxPanel = new System.Windows.Forms.Panel();
+            this.BASpeedImg = new System.Windows.Forms.PictureBox();
             this.BAStepTBLbl = new System.Windows.Forms.Label();
             this.BASpeedTB = new System.Windows.Forms.TrackBar();
             this.BAStepLbl = new System.Windows.Forms.Label();
@@ -96,7 +98,6 @@
             this.BAStepTxt = new System.Windows.Forms.TextBox();
             this.BAStepTB = new System.Windows.Forms.TrackBar();
             this.BACycleCountLbl = new System.Windows.Forms.Label();
-            this.BATimeLbl = new System.Windows.Forms.Label();
             this.BAStepMaxBtn = new System.Windows.Forms.Button();
             this.AreverseChkBtn = new System.Windows.Forms.CheckBox();
             this.BACycle2Btn = new System.Windows.Forms.Button();
@@ -105,14 +106,10 @@
             this.BAStepSetBtn = new System.Windows.Forms.Button();
             this.BAStepMax2Btn = new System.Windows.Forms.Button();
             this.BAStepMinBtn = new System.Windows.Forms.Button();
-            this.BACycleSetBtn = new System.Windows.Forms.Button();
             this.BACycle1Btn = new System.Windows.Forms.Button();
-            this.BACycleTxt = new System.Windows.Forms.TextBox();
-            this.BATimeTxt = new System.Windows.Forms.TextBox();
             this.BACycleLbl = new System.Windows.Forms.Label();
             this.BAStepMax1Btn = new System.Windows.Forms.Button();
-            this.BSpeedImg = new System.Windows.Forms.PictureBox();
-            this.BASpeedImg = new System.Windows.Forms.PictureBox();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
             ((System.ComponentModel.ISupportInitialize)(this.ImgLiveview)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgGuide)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgAux)).BeginInit();
@@ -121,12 +118,12 @@
             ((System.ComponentModel.ISupportInitialize)(this.BSpeedTB)).BeginInit();
             this.ShutterGB.SuspendLayout();
             this.BoardPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.BSpeedImg)).BeginInit();
             this.TestControlPanel.SuspendLayout();
             this.BoardAuxPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.BASpeedImg)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.BASpeedTB)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.BAStepTB)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.BSpeedImg)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.BASpeedImg)).BeginInit();
             this.SuspendLayout();
             // 
             // TestBtn
@@ -725,6 +722,17 @@
             this.BoardPanel.Size = new System.Drawing.Size(513, 270);
             this.BoardPanel.TabIndex = 80;
             // 
+            // BSpeedImg
+            // 
+            this.BSpeedImg.BackColor = System.Drawing.Color.Transparent;
+            this.BSpeedImg.Enabled = false;
+            this.BSpeedImg.Image = ((System.Drawing.Image)(resources.GetObject("BSpeedImg.Image")));
+            this.BSpeedImg.Location = new System.Drawing.Point(479, 15);
+            this.BSpeedImg.Name = "BSpeedImg";
+            this.BSpeedImg.Size = new System.Drawing.Size(20, 103);
+            this.BSpeedImg.TabIndex = 73;
+            this.BSpeedImg.TabStop = false;
+            // 
             // BMAuxChkBtn
             // 
             this.BMAuxChkBtn.AutoSize = true;
@@ -746,10 +754,11 @@
             this.TestControlPanel.Controls.Add(this.getEventBtn);
             this.TestControlPanel.Controls.Add(this.TestBtn);
             this.TestControlPanel.Controls.Add(this.textBox2);
-            this.TestControlPanel.Location = new System.Drawing.Point(-2, 188);
+            this.TestControlPanel.Location = new System.Drawing.Point(-2, 227);
             this.TestControlPanel.Name = "TestControlPanel";
             this.TestControlPanel.Size = new System.Drawing.Size(132, 512);
             this.TestControlPanel.TabIndex = 81;
+            this.TestControlPanel.Visible = false;
             // 
             // BoardAuxPanel
             // 
@@ -761,7 +770,6 @@
             this.BoardAuxPanel.Controls.Add(this.BAStepTxt);
             this.BoardAuxPanel.Controls.Add(this.BAStepTB);
             this.BoardAuxPanel.Controls.Add(this.BACycleCountLbl);
-            this.BoardAuxPanel.Controls.Add(this.BATimeLbl);
             this.BoardAuxPanel.Controls.Add(this.BAStepMaxBtn);
             this.BoardAuxPanel.Controls.Add(this.AreverseChkBtn);
             this.BoardAuxPanel.Controls.Add(this.BACycle2Btn);
@@ -770,10 +778,7 @@
             this.BoardAuxPanel.Controls.Add(this.BAStepSetBtn);
             this.BoardAuxPanel.Controls.Add(this.BAStepMax2Btn);
             this.BoardAuxPanel.Controls.Add(this.BAStepMinBtn);
-            this.BoardAuxPanel.Controls.Add(this.BACycleSetBtn);
             this.BoardAuxPanel.Controls.Add(this.BACycle1Btn);
-            this.BoardAuxPanel.Controls.Add(this.BACycleTxt);
-            this.BoardAuxPanel.Controls.Add(this.BATimeTxt);
             this.BoardAuxPanel.Controls.Add(this.BACycleLbl);
             this.BoardAuxPanel.Controls.Add(this.BAStepMax1Btn);
             this.BoardAuxPanel.Location = new System.Drawing.Point(817, 444);
@@ -781,6 +786,17 @@
             this.BoardAuxPanel.Size = new System.Drawing.Size(513, 210);
             this.BoardAuxPanel.TabIndex = 81;
             this.BoardAuxPanel.Visible = false;
+            // 
+            // BASpeedImg
+            // 
+            this.BASpeedImg.BackColor = System.Drawing.Color.Transparent;
+            this.BASpeedImg.Enabled = false;
+            this.BASpeedImg.Image = ((System.Drawing.Image)(resources.GetObject("BASpeedImg.Image")));
+            this.BASpeedImg.Location = new System.Drawing.Point(479, 14);
+            this.BASpeedImg.Name = "BASpeedImg";
+            this.BASpeedImg.Size = new System.Drawing.Size(20, 103);
+            this.BASpeedImg.TabIndex = 74;
+            this.BASpeedImg.TabStop = false;
             // 
             // BAStepTBLbl
             // 
@@ -800,10 +816,12 @@
             this.BASpeedTB.Minimum = 1;
             this.BASpeedTB.Name = "BASpeedTB";
             this.BASpeedTB.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.BASpeedTB.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.BASpeedTB.Size = new System.Drawing.Size(45, 121);
             this.BASpeedTB.TabIndex = 65;
             this.BASpeedTB.TickStyle = System.Windows.Forms.TickStyle.None;
             this.BASpeedTB.Value = 3;
+            this.BASpeedTB.Scroll += new System.EventHandler(this.BASpeedTB_Scroll);
             // 
             // BAStepLbl
             // 
@@ -842,26 +860,17 @@
             this.BAStepTB.Name = "BAStepTB";
             this.BAStepTB.Size = new System.Drawing.Size(368, 45);
             this.BAStepTB.TabIndex = 40;
+            this.BAStepTB.Scroll += new System.EventHandler(this.BAStepTB_Scroll);
             // 
             // BACycleCountLbl
             // 
             this.BACycleCountLbl.AutoSize = true;
             this.BACycleCountLbl.Enabled = false;
-            this.BACycleCountLbl.Location = new System.Drawing.Point(169, 57);
+            this.BACycleCountLbl.Location = new System.Drawing.Point(91, 58);
             this.BACycleCountLbl.Name = "BACycleCountLbl";
             this.BACycleCountLbl.Size = new System.Drawing.Size(13, 13);
             this.BACycleCountLbl.TabIndex = 52;
             this.BACycleCountLbl.Text = "0";
-            // 
-            // BATimeLbl
-            // 
-            this.BATimeLbl.AutoSize = true;
-            this.BATimeLbl.Enabled = false;
-            this.BATimeLbl.Location = new System.Drawing.Point(25, 85);
-            this.BATimeLbl.Name = "BATimeLbl";
-            this.BATimeLbl.Size = new System.Drawing.Size(30, 13);
-            this.BATimeLbl.TabIndex = 50;
-            this.BATimeLbl.Text = "Time";
             // 
             // BAStepMaxBtn
             // 
@@ -872,6 +881,7 @@
             this.BAStepMaxBtn.TabIndex = 43;
             this.BAStepMaxBtn.Text = "Set Max";
             this.BAStepMaxBtn.UseVisualStyleBackColor = true;
+            this.BAStepMaxBtn.Click += new System.EventHandler(this.BAStepMaxBtn_Click);
             // 
             // AreverseChkBtn
             // 
@@ -883,17 +893,19 @@
             this.AreverseChkBtn.TabIndex = 71;
             this.AreverseChkBtn.Text = "Reverse direction";
             this.AreverseChkBtn.UseVisualStyleBackColor = true;
+            this.AreverseChkBtn.CheckedChanged += new System.EventHandler(this.AreverseChkBtn_CheckedChanged);
             // 
             // BACycle2Btn
             // 
             this.BACycle2Btn.Enabled = false;
             this.BACycle2Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BACycle2Btn.Location = new System.Drawing.Point(191, 51);
+            this.BACycle2Btn.Location = new System.Drawing.Point(113, 52);
             this.BACycle2Btn.Name = "BACycle2Btn";
             this.BACycle2Btn.Size = new System.Drawing.Size(22, 23);
             this.BACycle2Btn.TabIndex = 44;
             this.BACycle2Btn.Text = "+";
             this.BACycle2Btn.UseVisualStyleBackColor = true;
+            this.BACycle2Btn.Click += new System.EventHandler(this.BACycle2Btn_Click);
             // 
             // AuStepChkBtn
             // 
@@ -905,6 +917,7 @@
             this.AuStepChkBtn.TabIndex = 70;
             this.AuStepChkBtn.Text = "Micro Stepping";
             this.AuStepChkBtn.UseVisualStyleBackColor = true;
+            this.AuStepChkBtn.CheckedChanged += new System.EventHandler(this.AuStepChkBtn_CheckedChanged);
             // 
             // BASpeedTBLbl
             // 
@@ -925,6 +938,7 @@
             this.BAStepSetBtn.TabIndex = 42;
             this.BAStepSetBtn.Text = "Set as step";
             this.BAStepSetBtn.UseVisualStyleBackColor = true;
+            this.BAStepSetBtn.Click += new System.EventHandler(this.BAStepSetBtn_Click);
             // 
             // BAStepMax2Btn
             // 
@@ -936,6 +950,7 @@
             this.BAStepMax2Btn.TabIndex = 55;
             this.BAStepMax2Btn.Text = "+";
             this.BAStepMax2Btn.UseVisualStyleBackColor = true;
+            this.BAStepMax2Btn.Click += new System.EventHandler(this.BAStepMax2Btn_Click);
             // 
             // BAStepMinBtn
             // 
@@ -946,45 +961,19 @@
             this.BAStepMinBtn.TabIndex = 41;
             this.BAStepMinBtn.Text = "Set Min";
             this.BAStepMinBtn.UseVisualStyleBackColor = true;
-            // 
-            // BACycleSetBtn
-            // 
-            this.BACycleSetBtn.Enabled = false;
-            this.BACycleSetBtn.Location = new System.Drawing.Point(219, 51);
-            this.BACycleSetBtn.Name = "BACycleSetBtn";
-            this.BACycleSetBtn.Size = new System.Drawing.Size(75, 23);
-            this.BACycleSetBtn.TabIndex = 46;
-            this.BACycleSetBtn.Text = "Set as Cycle";
-            this.BACycleSetBtn.UseVisualStyleBackColor = true;
+            this.BAStepMinBtn.Click += new System.EventHandler(this.BAStepMinBtn_Click);
             // 
             // BACycle1Btn
             // 
             this.BACycle1Btn.Enabled = false;
             this.BACycle1Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BACycle1Btn.Location = new System.Drawing.Point(138, 51);
+            this.BACycle1Btn.Location = new System.Drawing.Point(60, 52);
             this.BACycle1Btn.Name = "BACycle1Btn";
             this.BACycle1Btn.Size = new System.Drawing.Size(22, 23);
             this.BACycle1Btn.TabIndex = 47;
             this.BACycle1Btn.Text = "-";
             this.BACycle1Btn.UseVisualStyleBackColor = true;
-            // 
-            // BACycleTxt
-            // 
-            this.BACycleTxt.Enabled = false;
-            this.BACycleTxt.Location = new System.Drawing.Point(64, 54);
-            this.BACycleTxt.Name = "BACycleTxt";
-            this.BACycleTxt.Size = new System.Drawing.Size(68, 20);
-            this.BACycleTxt.TabIndex = 38;
-            this.BACycleTxt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            // 
-            // BATimeTxt
-            // 
-            this.BATimeTxt.Enabled = false;
-            this.BATimeTxt.Location = new System.Drawing.Point(64, 81);
-            this.BATimeTxt.Name = "BATimeTxt";
-            this.BATimeTxt.Size = new System.Drawing.Size(68, 20);
-            this.BATimeTxt.TabIndex = 39;
-            this.BATimeTxt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.BACycle1Btn.Click += new System.EventHandler(this.BACycle1Btn_Click);
             // 
             // BACycleLbl
             // 
@@ -1006,28 +995,16 @@
             this.BAStepMax1Btn.TabIndex = 54;
             this.BAStepMax1Btn.Text = "-";
             this.BAStepMax1Btn.UseVisualStyleBackColor = true;
+            this.BAStepMax1Btn.Click += new System.EventHandler(this.BAStepMax1Btn_Click);
             // 
-            // BSpeedImg
+            // progressBar1
             // 
-            this.BSpeedImg.BackColor = System.Drawing.Color.Transparent;
-            this.BSpeedImg.Enabled = false;
-            this.BSpeedImg.Image = ((System.Drawing.Image)(resources.GetObject("BSpeedImg.Image")));
-            this.BSpeedImg.Location = new System.Drawing.Point(479, 15);
-            this.BSpeedImg.Name = "BSpeedImg";
-            this.BSpeedImg.Size = new System.Drawing.Size(20, 103);
-            this.BSpeedImg.TabIndex = 73;
-            this.BSpeedImg.TabStop = false;
-            // 
-            // BASpeedImg
-            // 
-            this.BASpeedImg.BackColor = System.Drawing.Color.Transparent;
-            this.BASpeedImg.Enabled = false;
-            this.BASpeedImg.Image = ((System.Drawing.Image)(resources.GetObject("BASpeedImg.Image")));
-            this.BASpeedImg.Location = new System.Drawing.Point(479, 14);
-            this.BASpeedImg.Name = "BASpeedImg";
-            this.BASpeedImg.Size = new System.Drawing.Size(20, 103);
-            this.BASpeedImg.TabIndex = 74;
-            this.BASpeedImg.TabStop = false;
+            this.progressBar1.Location = new System.Drawing.Point(1193, 42);
+            this.progressBar1.MarqueeAnimationSpeed = 1;
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(110, 10);
+            this.progressBar1.TabIndex = 82;
+            this.progressBar1.Visible = false;
             // 
             // Form1
             // 
@@ -1035,6 +1012,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1350, 729);
+            this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.BoardAuxPanel);
             this.Controls.Add(this.TestControlPanel);
             this.Controls.Add(this.BoardPanel);
@@ -1071,14 +1049,14 @@
             this.ShutterGB.PerformLayout();
             this.BoardPanel.ResumeLayout(false);
             this.BoardPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.BSpeedImg)).EndInit();
             this.TestControlPanel.ResumeLayout(false);
             this.TestControlPanel.PerformLayout();
             this.BoardAuxPanel.ResumeLayout(false);
             this.BoardAuxPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.BASpeedImg)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.BASpeedTB)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.BAStepTB)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.BSpeedImg)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.BASpeedImg)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1151,7 +1129,6 @@
         private System.Windows.Forms.TextBox BAStepTxt;
         private System.Windows.Forms.TrackBar BAStepTB;
         private System.Windows.Forms.Label BACycleCountLbl;
-        private System.Windows.Forms.Label BATimeLbl;
         private System.Windows.Forms.Button BAStepMaxBtn;
         private System.Windows.Forms.CheckBox AreverseChkBtn;
         private System.Windows.Forms.Button BACycle2Btn;
@@ -1160,15 +1137,13 @@
         private System.Windows.Forms.Button BAStepSetBtn;
         private System.Windows.Forms.Button BAStepMax2Btn;
         private System.Windows.Forms.Button BAStepMinBtn;
-        private System.Windows.Forms.Button BACycleSetBtn;
         private System.Windows.Forms.Button BACycle1Btn;
-        private System.Windows.Forms.TextBox BACycleTxt;
-        private System.Windows.Forms.TextBox BATimeTxt;
         private System.Windows.Forms.Label BACycleLbl;
         private System.Windows.Forms.Button BAStepMax1Btn;
         private System.Windows.Forms.CheckBox BMAuxChkBtn;
         private System.Windows.Forms.PictureBox BSpeedImg;
         private System.Windows.Forms.PictureBox BASpeedImg;
+        private System.Windows.Forms.ProgressBar progressBar1;
     }
 }
 
