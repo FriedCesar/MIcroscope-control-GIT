@@ -110,6 +110,8 @@
             this.BACycleLbl = new System.Windows.Forms.Label();
             this.BAStepMax1Btn = new System.Windows.Forms.Button();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.focusTB = new System.Windows.Forms.TrackBar();
+            this.focusLbl = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.ImgLiveview)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgGuide)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgAux)).BeginInit();
@@ -124,6 +126,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.BASpeedImg)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.BASpeedTB)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.BAStepTB)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.focusTB)).BeginInit();
             this.SuspendLayout();
             // 
             // TestBtn
@@ -596,7 +599,7 @@
             // StartBtn
             // 
             this.StartBtn.Enabled = false;
-            this.StartBtn.Location = new System.Drawing.Point(1193, 33);
+            this.StartBtn.Location = new System.Drawing.Point(1193, 31);
             this.StartBtn.Name = "StartBtn";
             this.StartBtn.Size = new System.Drawing.Size(110, 46);
             this.StartBtn.TabIndex = 72;
@@ -999,12 +1002,32 @@
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(1193, 42);
+            this.progressBar1.Location = new System.Drawing.Point(1194, 76);
             this.progressBar1.MarqueeAnimationSpeed = 1;
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(110, 10);
+            this.progressBar1.Size = new System.Drawing.Size(109, 10);
             this.progressBar1.TabIndex = 82;
             this.progressBar1.Visible = false;
+            // 
+            // focusTB
+            // 
+            this.focusTB.Location = new System.Drawing.Point(532, 566);
+            this.focusTB.Maximum = 180;
+            this.focusTB.Name = "focusTB";
+            this.focusTB.Size = new System.Drawing.Size(279, 45);
+            this.focusTB.TabIndex = 83;
+            this.focusTB.Visible = false;
+            this.focusTB.Scroll += new System.EventHandler(this.focusTB_Scroll);
+            // 
+            // focusLbl
+            // 
+            this.focusLbl.AutoSize = true;
+            this.focusLbl.Location = new System.Drawing.Point(497, 566);
+            this.focusLbl.Name = "focusLbl";
+            this.focusLbl.Size = new System.Drawing.Size(36, 13);
+            this.focusLbl.TabIndex = 84;
+            this.focusLbl.Text = "Focus";
+            this.focusLbl.Visible = false;
             // 
             // Form1
             // 
@@ -1012,6 +1035,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1350, 729);
+            this.Controls.Add(this.focusLbl);
+            this.Controls.Add(this.focusTB);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.BoardAuxPanel);
             this.Controls.Add(this.TestControlPanel);
@@ -1057,6 +1082,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.BASpeedImg)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.BASpeedTB)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.BAStepTB)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.focusTB)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1144,6 +1170,8 @@
         private System.Windows.Forms.PictureBox BSpeedImg;
         private System.Windows.Forms.PictureBox BASpeedImg;
         private System.Windows.Forms.ProgressBar progressBar1;
+        private System.Windows.Forms.TrackBar focusTB;
+        private System.Windows.Forms.Label focusLbl;
     }
 }
 

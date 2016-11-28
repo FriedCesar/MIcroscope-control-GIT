@@ -233,6 +233,8 @@ namespace Microscope_Control
                     HPShutterChkBtn.Enabled = true;
                     if (ConSuc)
                     {
+                        focusTB.Visible = true;
+                        focusLbl.Visible = true;
                         BShutterBtn.Enabled = true;
                         StartBtn.Enabled = true;
                         ManageChkBtn.Enabled = true;
@@ -831,6 +833,8 @@ namespace Microscope_Control
         //                  Received: AF
         //              D: Disconnect Auxiliar Motor
         //                  Received: DF
+        //              L: Move Focus Servo
+        //                  Received: LF                            
         //***********************************************************************************
         //      TODO:
         //              - if no received action, request torepeat information. Then, if error, send again
@@ -1091,6 +1095,8 @@ namespace Microscope_Control
                     }
                     if (CamConStatus)
                     {
+                        focusTB.Visible = true;
+                        focusLbl.Visible = true;
                         BShutterBtn.Enabled = true;
                         StartBtn.Enabled = true;
                         ManageChkBtn.Enabled = true;
@@ -1168,6 +1174,8 @@ namespace Microscope_Control
             BShutterBtn.Enabled = false;
             StartBtn.Enabled = false;
             ManageChkBtn.Enabled = false;
+            focusTB.Visible = false;
+            focusLbl.Visible = false;
         }
 
         private void ComInstruction(object sender, EventArgs e)                                 // Manages received instructions from board (and actions on request)
@@ -1256,6 +1264,7 @@ namespace Microscope_Control
                     case "WF":                                                                      // Completed uStep selection
                     case "RF":                                                                      // Completed reverse direction selection
                     case "FF":                                                                      // Completed forward direction selection
+                    case "LF":
                         receivedAction = true;
                         Busy = false;
                         break;
@@ -1695,6 +1704,12 @@ namespace Microscope_Control
                 OnCapture = true;
                 StartCapture();
             }
+        }
+
+        private void focusTB_Scroll(object sender, EventArgs e)
+        {
+            byte[] sendthis = new byte[] { 64, session[0], Convert.ToByte('L'), Convert.ToByte(focusTB.Value), 0X0A };
+            serialPort1.Write(sendthis, 0, sendthis.Length);
         }
     }
 
