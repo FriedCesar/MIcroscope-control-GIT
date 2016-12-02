@@ -18,10 +18,10 @@
                             - Auxiliary motor control added
                             - Changed connection pins
                             - Standarized COM protocol
+                            - Servo-motor
                             - TODO:
                                     - Temperature control
                                     - Option for IR Control
-                                    - Servo-motor
 
                                             César Augusto Hernández Espitia
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -40,6 +40,7 @@
                                                                           Recommended 12V >2A
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
+#include <Servo.h>          // Servo library
 #include <EEPROM.h>         // EEPROM library
 
 typedef struct              // Pulse type structure
@@ -92,6 +93,7 @@ int data1 = 0;              // Save process Data manager
 int data2 = 0;              // Save process Data manager
 int i;                      // Multipurpose counter
 String rxData;              // Command reception storage string
+Servo myServo;
 
 // Calls motor initialization function: (Step multiplier, Received position, Last Position, Current Position, Direction multiplier, uStep1 pin, uStep2 pin, uStep3 pin, direction pin,
 //                                       Sleep pin, Reset pin, [Pulse pin, pulse train pin (High status cycle), pulse train pin (Low status cycle)])
@@ -131,6 +133,7 @@ void setup()
   delay(5);
 
   digitalWrite(led, LOW);
+  myServo.attach(22);
 
   Serial.begin(57600, SERIAL_8N1);                  // Start communication (Hearing)
   while (!Serial)
@@ -494,6 +497,14 @@ MOTOR ActionHandler(MOTOR myMotor, char ID)
       Serial.print(ID);
       Serial.write(sessionRx);
       Serial.print("DF");
+      break;
+      case 'L':
+      rxByte = Serial.read();
+      int servoData = rxByte;
+      myServo.write(servoData);
+      Serial.print(ID);
+      Serial.write(sessionRx);
+      Serial.print("LF");
       break;
     default:
       break;
