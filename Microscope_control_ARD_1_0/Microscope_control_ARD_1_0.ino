@@ -68,7 +68,6 @@ typedef struct              // Motor type structure
   int stp;                  // Step Control pin
   int slp;                  // ~Sleep pin
   int rst;                  // ~Reset pin
-  bool uStep;
   //int en;                  // enable pin (not used)
   PULSE pulse;
 } MOTOR;
@@ -90,7 +89,6 @@ byte sessionRx;             // Stores OnCommand Session identifier
 byte rxByte;                // Receives and stores OnCommand byte
 unsigned char posL;         // Stores 16-byte, high, for position information
 unsigned char posH;         // Stores 16-byte, low, for position information
-int servoData = 0;
 int data1 = 0;              // Save process Data manager
 int data2 = 0;              // Save process Data manager
 int i;                      // Multipurpose counter
@@ -117,18 +115,18 @@ void setup()
   digitalWrite(motorMain.slp, HIGH);  // Activate Stepper Motor Driver
   digitalWrite(motorMain.rst, HIGH);
   digitalWrite(motorMain.dir, HIGH);  // Move motor on startup
-  Blink(motorMain.pulse, 50, false);
+  Blink(motorMain.pulse, 50);
   digitalWrite(motorMain.dir, LOW);
-  Blink(motorMain.pulse, 50, false);
+  Blink(motorMain.pulse, 50);
   digitalWrite(motorMain.slp, LOW);  // Activate Stepper Motor Driver
   digitalWrite(motorMain.rst, LOW);
 
   digitalWrite(motorAux.slp, HIGH);   // Activate Stepper Motor Driver (Auxiliar)
   digitalWrite(motorAux.rst, HIGH);
   digitalWrite(motorAux.dir, HIGH);   // Move motor on startup
-  Blink(motorAux.pulse, 50, false);
+  Blink(motorAux.pulse, 50);
   digitalWrite(motorAux.dir, LOW);
-  Blink(motorAux.pulse, 50, false);
+  Blink(motorAux.pulse, 50);
   digitalWrite(motorAux.slp, LOW);   // Activate Stepper Motor Driver (Auxiliar)
   digitalWrite(motorAux.rst, LOW);
 
@@ -151,17 +149,18 @@ void loop()                                         // Check connection status a
   if (endFlag)
   {
     PinStart();
-    Blink (LD, 3, false);
-    Serial.flush();
+    Blink (LD, 1);
+    Serial.end();
+    Blink (LD, 2);
+    Serial.begin(57600, SERIAL_8N1);
     endFlag = false;
     motorMain = initMotor(MMain);
     motorAux  = initMotor(MAux);
     ReadMem();
-    Serial.write("DISCONNECT");
-    //    while (!Serial)
-    //    {
-    //      ;
-    //    }
+    while (!Serial)
+    {
+      ;
+    }
   }
 }
 
@@ -219,7 +218,6 @@ MOTOR initMotor(int initVal[18])                    // Asigns value to motor str
   myMotor.npas          = initVal[15];
   myMotor.ccic          = initVal[16];
   myMotor.tcic          = initVal[17];
-  myMotor.uStep    = false;
   pinMode(myMotor.ms1,    OUTPUT);
   pinMode(myMotor.ms2,    OUTPUT);
   pinMode(myMotor.ms3,    OUTPUT);
@@ -241,9 +239,6 @@ void serialEvent()                                  // Serial event handler, in 
     rxData += char(rxByte);
     if (rxData == ("COMREQU"))
     {
-      motorMain = initMotor(MMain);
-      motorAux  = initMotor(MAux);
-      ReadMem();
       delay(1);
       rxByte = Serial.read();
       rxData += char(rxByte);
@@ -258,19 +253,17 @@ void serialEvent()                                  // Serial event handler, in 
     }
     if (rxData == ("COMERROR"))
     {
-      Serial.write("DISCONNECT");
-      endFlag = true;
-      startFlag = false;
       rxData = "";
+      Serial.write("DISCONNECT");
     }
     if (rxData == ("DISCONNECT"))
     {
       endFlag = true;
       startFlag = false;
       rxData = "";
-      //      motorMain = initMotor(MMain);
-      //      motorAux  = initMotor(MAux);
-      //      ReadMem();
+      motorMain = initMotor(MMain);
+      motorAux  = initMotor(MAux);
+      ReadMem();
     }
 
     if (rxData == ("@"))
@@ -290,52 +283,37 @@ void serialEvent()                                  // Serial event handler, in 
 }
 
 
-void Blink(PULSE USE, int rep, bool HowFast)     // Pulse generator *Used for led blink, and motor movement (pulse train)
+void Blink(PULSE USE, int rep)     // Pulse generator (single cycle is 3ms (value 1 for tHigh and tLow)) *Used for led blink, and motor movement (pulse train)
 {
   int pin = USE.pin;
   int tHigh = USE.tHigh;
   int tLow = USE.tLow;
-  if (HowFast == false)
+  if (tLow <= 1)
   {
-    if (tLow <= 1)
-    {
-      tLow = 2;
-    }
-    unsigned long timer = millis();
-    for (i = 1; i <= rep; i++)
-    {
-
-      digitalWrite(pin, LOW);
-      while ((millis() - timer) <= (tLow / 2))
-      {
-        ;
-      }
-      timer = millis();
-      digitalWrite(pin, HIGH);
-      while ((millis() - timer) <= (tHigh))
-      {
-        ;
-      }
-      timer = millis();
-      digitalWrite(pin, LOW);
-      while ((millis() - timer) <= (tLow / 2))
-      {
-        ;
-      }
-      timer = millis();
-    }
+    tLow = 2;
   }
-  if (HowFast == true)
+  unsigned long timer = millis();
+  for (i = 1; i <= rep; i++)
   {
-    for (i = 1; i <= rep; i++)
+
+    digitalWrite(pin, LOW);
+    while ((millis() - timer) <= (tLow / 2))
     {
-      digitalWrite(pin, LOW);
-      delayMicroseconds(tLow * 100);
-      digitalWrite(pin, HIGH);
-      delayMicroseconds(tHigh * 200);
-      digitalWrite(pin, LOW);
-      delayMicroseconds(tLow * 100);
+      ;
     }
+    timer = millis();
+    digitalWrite(pin, HIGH);
+    while ((millis() - timer) <= (tHigh))
+    {
+      ;
+    }
+    timer = millis();
+    digitalWrite(pin, LOW);
+    while ((millis() - timer) <= (tLow / 2))
+    {
+      ;
+    }
+    timer = millis();
   }
 }
 
@@ -381,7 +359,7 @@ MOTOR ActionHandler(MOTOR myMotor, char ID)
       {
         digitalWrite(myMotor.dir, HIGH);
       }
-      Blink(myMotor.pulse, abs(myMotor.Pos)*myMotor.stepMult, myMotor.uStep);
+      Blink(myMotor.pulse, abs(myMotor.Pos)*myMotor.stepMult);
 
       /*Serial.write("Moving: ");           //Monitor rutine
         Serial.print(myMotor.Pos);
@@ -420,7 +398,6 @@ MOTOR ActionHandler(MOTOR myMotor, char ID)
       Serial.print(ID);
       Serial.write(sessionRx);
       Serial.print("OF");
-      delay(2);
       break;
     case 'S':
     case 'Z':
@@ -446,7 +423,7 @@ MOTOR ActionHandler(MOTOR myMotor, char ID)
       {
         digitalWrite(myMotor.dir, HIGH);
       }
-      Blink(myMotor.pulse, abs(myMotor.Pos)*myMotor.stepMult, myMotor.uStep);
+      Blink(myMotor.pulse, abs(myMotor.Pos)*myMotor.stepMult);
       if (myMotor.sen == 'S')
         myMotor.sign    = myMotor.sign * -1;
       myMotor.lPos    = 0;
@@ -454,7 +431,6 @@ MOTOR ActionHandler(MOTOR myMotor, char ID)
       Serial.print(ID);
       Serial.write(sessionRx);
       Serial.print("SF");
-      delay(5);
       break;
     case 'Q':
       rxByte = Serial.read();
@@ -465,7 +441,6 @@ MOTOR ActionHandler(MOTOR myMotor, char ID)
       break;
     case 'U':
       myMotor.stepMult = 1;
-      myMotor.uStep = false;
       digitalWrite(myMotor.ms1, LOW);
       digitalWrite(myMotor.ms2, LOW);
       digitalWrite(myMotor.ms3, LOW);
@@ -475,7 +450,6 @@ MOTOR ActionHandler(MOTOR myMotor, char ID)
       break;
     case 'W':
       myMotor.stepMult = 16;
-      myMotor.uStep = true;
       digitalWrite(myMotor.ms1, HIGH);
       digitalWrite(myMotor.ms2, HIGH);
       digitalWrite(myMotor.ms3, HIGH);
@@ -524,25 +498,13 @@ MOTOR ActionHandler(MOTOR myMotor, char ID)
       Serial.write(sessionRx);
       Serial.print("DF");
       break;
-    case 'L':
+      case 'L':
       rxByte = Serial.read();
-      servoData = rxByte;
+      int servoData = rxByte;
       myServo.write(servoData);
       Serial.print(ID);
       Serial.write(sessionRx);
       Serial.print("LF");
-      break;
-    case 'G':
-      myMotor.stepMult = 1;
-      Serial.print(ID);
-      Serial.write(sessionRx);
-      Serial.print("GF");
-      break;
-    case 'H':
-      myMotor.stepMult = 16;
-      Serial.print(ID);
-      Serial.write(sessionRx);
-      Serial.print("HF");
       break;
     default:
       break;
