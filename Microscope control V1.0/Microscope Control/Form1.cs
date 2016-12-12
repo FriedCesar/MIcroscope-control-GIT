@@ -112,7 +112,6 @@ namespace Microscope_Control
         bool onSave = false;
         bool onStart = false;
         bool onAuxiliar = false;
-        bool onTest = false;
         int myFrame = 0;
         int myImg = 0;
         int frameCount = 0;
@@ -589,39 +588,35 @@ namespace Microscope_Control
 
         private void ShutterBW_DoWork(object sender, DoWorkEventArgs e)                         // Sends HTTP GET request for camera shutter (Manages saving image)
         {
+            if (LiveviewBW.IsBusy != true)
+                LiveviewBW.CancelAsync();
             BackgroundWorker worker = sender as BackgroundWorker;
-            if (!onTest)
+            WebClient imageClient = new WebClient();                                                // Initializes webclient for image managing
+            onSave = true;                                                                          // Sets OnSave flag
+            CamResponse = SendRequest("actTakePicture", "");                                        // Sends HTTP GET request, retrieves image URL
+            string imgURL = ReadRequestJson(CamResponse, 0, 0);                                            //NON JSON SOLUTION: CamResponse.Substring(20).Split('\"').FirstOrDefault();
+            string name = "";
+            string path = "";
+            if (shutterFlag)                                                                        // On shutter action, saves file to location
             {
-                if (LiveviewBW.IsBusy != true)
-                    LiveviewBW.CancelAsync();
-                WebClient imageClient = new WebClient();                                                // Initializes webclient for image managing
-                onSave = true;                                                                          // Sets OnSave flag
-                CamResponse = SendRequest("actTakePicture", "");                                        // Sends HTTP GET request, retrieves image URL
-                string imgURL = ReadRequestJson(CamResponse, 0, 0);                                            //NON JSON SOLUTION: CamResponse.Substring(20).Split('\"').FirstOrDefault();
-                string name = "";
-                string path = "";
-                if (shutterFlag)                                                                        // On shutter action, saves file to location
-                {
-                    name = ("P" + picCount.ToString("D4") + ".jpg");
-                    path = ("C:\\Observation\\Session" + BitConverter.ToString(session) + "Shutter");
-                    picCount += 1;
-                }
-                else                                                                                    // On automatic observation, saves file to location
-                {
-                    name = (("S") + BitConverter.ToString(session) + ("F") + myFrame.ToString("D3") + ("P") + myImg.ToString("D3") + ".jpg");
-                    path = ("C:\\Observation\\Session" + BitConverter.ToString(session) + "\\Frame" + myFrame.ToString("D4"));
-                }
-                if (!Directory.Exists(path))                                                            // Check requested directory exists, if not, creates it
-                {
-                    DirectoryInfo di = Directory.CreateDirectory(path);
-                }
-                if (!LiveviewBW.IsBusy)
-                    LiveviewBW.RunWorkerAsync();
-
-                worker.ReportProgress(10);                                                              // If action needed on shutter use this
-
-                imageClient.DownloadFile(imgURL, path + "\\" + name);                                   // Saves File
+                name = ("P" + picCount.ToString("D4") + ".jpg");
+                path = ("C:\\Observation\\Session" + BitConverter.ToString(session) + "Shutter");
+                picCount += 1;
             }
+            else                                                                                    // On automatic observation, saves file to location
+            {
+                name = (("S") + BitConverter.ToString(session) + ("F") + myFrame.ToString("D3") + ("P") + myImg.ToString("D3") + ".jpg");
+                path = ("C:\\Observation\\Session" + BitConverter.ToString(session) + "\\Frame" + myFrame.ToString("D4"));
+            }
+            if (!Directory.Exists(path))                                                            // Check requested directory exists, if not, creates it
+            {
+                DirectoryInfo di = Directory.CreateDirectory(path);
+            }
+            if (!LiveviewBW.IsBusy)
+                LiveviewBW.RunWorkerAsync();
+            worker.ReportProgress(10);                                                              // If action needed on shutter use this
+
+            imageClient.DownloadFile(imgURL, path + "\\" + name);                                   // Saves File
         }
 
         private void ShutterBW_ProgressChanged(object sender, ProgressChangedEventArgs e)       // If action needed on shutter use this     
@@ -960,7 +955,6 @@ namespace Microscope_Control
                         if (control is TextBox)
                             ((TextBox)control).Text = ("");
                     }
-
                     TxString = ("DISCONNECT");
                     serialPort1.WriteLine(TxString);
                 }
@@ -1138,7 +1132,7 @@ namespace Microscope_Control
         private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)     // Actions on connection, manages received requests
         {
             if (OnCapture)
-                Thread.Sleep(3);
+                Thread.Sleep(10);
             Array.Resize(ref byteRead, serialPort1.BytesToRead);
             serialPort1.Read(byteRead, 0, serialPort1.BytesToRead);
             RxString = Encoding.UTF8.GetString(byteRead);
@@ -1330,11 +1324,11 @@ namespace Microscope_Control
                     case "OF":                                                                          // Origin stablished
                         receivedAction = true;
                         Busy = false;
-                        textBox1.AppendText("Origin\r\n\n");
                         if (ID == "@")
                         {
                             if (OnCapture)                                                              // If OnCapture continue automatic routine
                             {
+                                Thread.Sleep(50);
                                 if (onStart)
                                 {
                                     Invoke(new EventHandler(StartCapture));                                                     // If OnStart (first image of the automated observation), initiate capture
@@ -1351,6 +1345,7 @@ namespace Microscope_Control
                         {
                             if (OnCapture & BMAuxChkBtn.Checked == true)                                                              // If OnCapture continue automatic routine
                             {
+                                Thread.Sleep(50);
                                 if (onStart)
                                 {
                                     TxString = ("@" + Encoding.ASCII.GetString(session) + "O");
@@ -1373,12 +1368,12 @@ namespace Microscope_Control
                         Busy = true;
                         if (OnCapture)
                         {
-                            capture = (ID + "Sent: " + i.ToString() + "\r\nFrame: " + myFrame + "\r\n");
+                            capture = (ID + "Sent: " + i.ToString() + "\r\n");
                             if (capture == captureLast)
                                 break;
                             captureLast = capture;
                         }
-                        textBox1.AppendText(capture);
+                        textBox1.AppendText(ID + "Sent: " + i.ToString() + "\r\n");
                         if (ID == "@")
                         {
                             BStateLbl.Text = ("Move Finished");
@@ -1445,7 +1440,6 @@ namespace Microscope_Control
 
         private void MoveStage(int steps, char inst, char ID)                                           // Manages stage movement (used in board request 'P', 'S' and 'Z')
         {
-            i = steps;
             if (ID == '@')
             {
                 Pos = steps;
@@ -1458,6 +1452,7 @@ namespace Microscope_Control
             }
             byte[] bytePos = BitConverter.GetBytes(steps);
             byte[] sendthis = new byte[] { Convert.ToByte(ID), session[0], Convert.ToByte(inst), bytePos[0], bytePos[1], 0X0A };
+            i = steps;
             TxString = Encoding.ASCII.GetString(sendthis);
             serialPort1.Write(sendthis, 0, sendthis.Length);
         }
@@ -1672,10 +1667,6 @@ namespace Microscope_Control
 
         private void StartBtn_Click(object sender, EventArgs e)
         {
-            myFrame = 0;
-            myImg = 0;
-            frameCount = 0;
-            picCount = 0;
             if (!stopCapture)
             {
                 StartBtn.Text = ("STOP");
@@ -1744,34 +1735,29 @@ namespace Microscope_Control
 
         private void CreateFolders(object sender, EventArgs e)
         {
-            if (!onTest)
+            BStateLbl.Text = (BStateLbl.Text + ("OK"));
+            nameSave = ("Session" + BitConverter.ToString(session));
+            pathSave = ("C:\\Observation\\" + nameSave);
+            if (!Directory.Exists(pathSave))
             {
-                BStateLbl.Text = (BStateLbl.Text + ("OK"));
-                nameSave = ("Session" + BitConverter.ToString(session));
-                pathSave = ("C:\\Observation\\" + nameSave);
-                if (!Directory.Exists(pathSave))
-                {
-                    DirectoryInfo di = Directory.CreateDirectory(pathSave);
-                    BStateLbl.Text = (BStateLbl.Text + ("\nCreating Folders..."));
-                }
-                for (i = 0; i <= Convert.ToInt32(BCycleTxt.Text); i++)
-                {
-                    if (!Directory.Exists(pathSave + "\\Frame" + i.ToString("D4")))
-                    {
-                        DirectoryInfo di = Directory.CreateDirectory(pathSave + "\\Frame" + i.ToString("D4"));
-                    }
-                }
-                BStateLbl.Text = (BStateLbl.Text + ("\nAwaiting for capture"));
-                StartBtn.Enabled = true;
+                DirectoryInfo di = Directory.CreateDirectory(pathSave);
+                BStateLbl.Text = (BStateLbl.Text + ("\nCreating Folders..."));
             }
+            for (i = 0; i <= Convert.ToInt32(BCycleTxt.Text); i++)
+            {
+                if (!Directory.Exists(pathSave + "\\Frame" + i.ToString("D4")))
+                {
+                    DirectoryInfo di = Directory.CreateDirectory(pathSave + "\\Frame" + i.ToString("D4"));
+                }
+            }
+            BStateLbl.Text = (BStateLbl.Text + ("\nAwaiting for capture"));
+            StartBtn.Enabled = true;
             if (unmanaged)
             {
                 OnCapture = true;
             }
             else
-            {
                 captureBtn.Enabled = true;
-            }
 
             Busy = true;
             onStart = true;
@@ -1861,25 +1847,12 @@ namespace Microscope_Control
 
         private void IntervalTmr_Tick(object sender, EventArgs e)
         {
-            if (onTest)
-            {
-                stopCapture = true;
-                onTest = false;
-                StartBtn_Click(sender, e);
-            }
 
             string json = SendRequest("getEvent", "false", "1.1");
             int images = Convert.ToInt32(ReadRequestJson(json, 10, 0, "numberOfRecordableImages"));
-            if ((images < TotalFrames) && (images != -1))
-            {
-                WarningLbl.Text = ("Change Camera Memory card");
+            ;
+            if ((images < 400) && (images != -1))
                 WarningLbl.Visible = true;
-            }
-            else if (images == -1)
-            {
-                WarningLbl.Text = ("No memory card in Camera");
-                WarningLbl.Visible = true;
-            }
             else
                 WarningLbl.Visible = false;
 
@@ -1904,14 +1877,6 @@ namespace Microscope_Control
         {
             byte[] sendthis = new byte[] { 64, session[0], Convert.ToByte('L'), Convert.ToByte(focusTB.Value), 0X0A };
             serialPort1.Write(sendthis, 0, sendthis.Length);
-        }
-
-        private void FocusBtn_Click(object sender, EventArgs e)
-        {
-            onTest = true;
-            stopCapture = false;
-            StartBtn_Click(sender, e);
-
         }
     }
 
