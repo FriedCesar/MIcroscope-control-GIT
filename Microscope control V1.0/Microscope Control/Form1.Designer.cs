@@ -115,9 +115,10 @@
             this.focusTB = new System.Windows.Forms.TrackBar();
             this.focusLbl = new System.Windows.Forms.Label();
             this.FocusPanel = new System.Windows.Forms.Panel();
-            this.FocusCalBtn = new System.Windows.Forms.Button();
+            this.FocusChkBtn = new System.Windows.Forms.CheckBox();
             this.CameraPanel = new System.Windows.Forms.Panel();
             this.WarningLbl = new System.Windows.Forms.Label();
+            this.FocusBtn = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.ImgLiveview)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgGuide)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgAux)).BeginInit();
@@ -607,7 +608,7 @@
             // StartBtn
             // 
             this.StartBtn.Enabled = false;
-            this.StartBtn.Location = new System.Drawing.Point(1193, 31);
+            this.StartBtn.Location = new System.Drawing.Point(1166, 65);
             this.StartBtn.Name = "StartBtn";
             this.StartBtn.Size = new System.Drawing.Size(110, 46);
             this.StartBtn.TabIndex = 72;
@@ -619,7 +620,7 @@
             // 
             this.ManageChkBtn.AutoSize = true;
             this.ManageChkBtn.Enabled = false;
-            this.ManageChkBtn.Location = new System.Drawing.Point(1193, 114);
+            this.ManageChkBtn.Location = new System.Drawing.Point(1165, 117);
             this.ManageChkBtn.Name = "ManageChkBtn";
             this.ManageChkBtn.Size = new System.Drawing.Size(124, 17);
             this.ManageChkBtn.TabIndex = 73;
@@ -630,7 +631,7 @@
             // captureBtn
             // 
             this.captureBtn.Enabled = false;
-            this.captureBtn.Location = new System.Drawing.Point(1193, 85);
+            this.captureBtn.Location = new System.Drawing.Point(1166, 34);
             this.captureBtn.Name = "captureBtn";
             this.captureBtn.Size = new System.Drawing.Size(110, 23);
             this.captureBtn.TabIndex = 74;
@@ -1034,7 +1035,7 @@
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(1194, 76);
+            this.progressBar1.Location = new System.Drawing.Point(1167, 56);
             this.progressBar1.MarqueeAnimationSpeed = 1;
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(108, 10);
@@ -1043,7 +1044,7 @@
             // 
             // focusTB
             // 
-            this.focusTB.Location = new System.Drawing.Point(41, 4);
+            this.focusTB.Location = new System.Drawing.Point(40, 4);
             this.focusTB.Maximum = 180;
             this.focusTB.Name = "focusTB";
             this.focusTB.Size = new System.Drawing.Size(279, 45);
@@ -1061,23 +1062,25 @@
             // 
             // FocusPanel
             // 
-            this.FocusPanel.Controls.Add(this.FocusCalBtn);
+            this.FocusPanel.Controls.Add(this.FocusBtn);
+            this.FocusPanel.Controls.Add(this.FocusChkBtn);
             this.FocusPanel.Controls.Add(this.focusTB);
             this.FocusPanel.Controls.Add(this.focusLbl);
             this.FocusPanel.Location = new System.Drawing.Point(488, 549);
             this.FocusPanel.Name = "FocusPanel";
-            this.FocusPanel.Size = new System.Drawing.Size(323, 90);
+            this.FocusPanel.Size = new System.Drawing.Size(323, 105);
             this.FocusPanel.TabIndex = 85;
             this.FocusPanel.Visible = false;
             // 
-            // FocusCalBtn
+            // FocusChkBtn
             // 
-            this.FocusCalBtn.Location = new System.Drawing.Point(6, 44);
-            this.FocusCalBtn.Name = "FocusCalBtn";
-            this.FocusCalBtn.Size = new System.Drawing.Size(75, 23);
-            this.FocusCalBtn.TabIndex = 85;
-            this.FocusCalBtn.Text = "Calibrate";
-            this.FocusCalBtn.UseVisualStyleBackColor = true;
+            this.FocusChkBtn.AutoSize = true;
+            this.FocusChkBtn.Location = new System.Drawing.Point(189, 55);
+            this.FocusChkBtn.Name = "FocusChkBtn";
+            this.FocusChkBtn.Size = new System.Drawing.Size(130, 17);
+            this.FocusChkBtn.TabIndex = 85;
+            this.FocusChkBtn.Text = "Use automated Focus";
+            this.FocusChkBtn.UseVisualStyleBackColor = true;
             // 
             // CameraPanel
             // 
@@ -1098,12 +1101,22 @@
             this.WarningLbl.AutoSize = true;
             this.WarningLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.WarningLbl.ForeColor = System.Drawing.Color.Red;
-            this.WarningLbl.Location = new System.Drawing.Point(1041, 134);
+            this.WarningLbl.Location = new System.Drawing.Point(1014, 4);
             this.WarningLbl.Name = "WarningLbl";
             this.WarningLbl.Size = new System.Drawing.Size(289, 24);
             this.WarningLbl.TabIndex = 87;
             this.WarningLbl.Text = "Change Camera Memory card";
             this.WarningLbl.Visible = false;
+            // 
+            // FocusBtn
+            // 
+            this.FocusBtn.Location = new System.Drawing.Point(6, 49);
+            this.FocusBtn.Name = "FocusBtn";
+            this.FocusBtn.Size = new System.Drawing.Size(75, 23);
+            this.FocusBtn.TabIndex = 86;
+            this.FocusBtn.Text = "Calibrate";
+            this.FocusBtn.UseVisualStyleBackColor = true;
+            this.FocusBtn.Click += new System.EventHandler(this.FocusBtn_Click);
             // 
             // Form1
             // 
@@ -1249,10 +1262,11 @@
         private System.Windows.Forms.Label focusLbl;
         private System.Windows.Forms.Panel FocusPanel;
         private System.Windows.Forms.Panel CameraPanel;
-        private System.Windows.Forms.Button FocusCalBtn;
         private System.Windows.Forms.CheckBox BSingleStepChkBtn;
         private System.Windows.Forms.CheckBox ASingleStepChkBtn;
         private System.Windows.Forms.Label WarningLbl;
+        private System.Windows.Forms.CheckBox FocusChkBtn;
+        private System.Windows.Forms.Button FocusBtn;
     }
 }
 
