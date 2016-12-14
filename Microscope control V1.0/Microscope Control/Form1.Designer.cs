@@ -79,7 +79,6 @@
             this.ManageChkBtn = new System.Windows.Forms.CheckBox();
             this.captureBtn = new System.Windows.Forms.Button();
             this.IntervalTmr = new System.Windows.Forms.Timer(this.components);
-            this.LiveviewBW = new System.ComponentModel.BackgroundWorker();
             this.ShutterBW = new System.ComponentModel.BackgroundWorker();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.textBox2 = new System.Windows.Forms.TextBox();
@@ -112,6 +111,8 @@
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.focusTB = new System.Windows.Forms.TrackBar();
             this.focusLbl = new System.Windows.Forms.Label();
+            this.FocusPanel = new System.Windows.Forms.Panel();
+            this.CameraPanel = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.ImgLiveview)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgGuide)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgAux)).BeginInit();
@@ -127,6 +128,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.BASpeedTB)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.BAStepTB)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.focusTB)).BeginInit();
+            this.FocusPanel.SuspendLayout();
+            this.CameraPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // TestBtn
@@ -157,7 +160,7 @@
             // 
             // ConnectBtn
             // 
-            this.ConnectBtn.Location = new System.Drawing.Point(23, 45);
+            this.ConnectBtn.Location = new System.Drawing.Point(21, 9);
             this.ConnectBtn.Name = "ConnectBtn";
             this.ConnectBtn.Size = new System.Drawing.Size(75, 34);
             this.ConnectBtn.TabIndex = 2;
@@ -181,7 +184,7 @@
             // LiveviewBtn
             // 
             this.LiveviewBtn.Enabled = false;
-            this.LiveviewBtn.Location = new System.Drawing.Point(23, 85);
+            this.LiveviewBtn.Location = new System.Drawing.Point(21, 49);
             this.LiveviewBtn.Name = "LiveviewBtn";
             this.LiveviewBtn.Size = new System.Drawing.Size(75, 23);
             this.LiveviewBtn.TabIndex = 5;
@@ -228,7 +231,7 @@
             // 
             this.guideChkBtn.AutoSize = true;
             this.guideChkBtn.Enabled = false;
-            this.guideChkBtn.Location = new System.Drawing.Point(22, 119);
+            this.guideChkBtn.Location = new System.Drawing.Point(20, 83);
             this.guideChkBtn.Name = "guideChkBtn";
             this.guideChkBtn.Size = new System.Drawing.Size(54, 17);
             this.guideChkBtn.TabIndex = 10;
@@ -265,7 +268,7 @@
             // 
             this.guideRefreshBtn.Enabled = false;
             this.guideRefreshBtn.Image = ((System.Drawing.Image)(resources.GetObject("guideRefreshBtn.Image")));
-            this.guideRefreshBtn.Location = new System.Drawing.Point(75, 115);
+            this.guideRefreshBtn.Location = new System.Drawing.Point(73, 79);
             this.guideRefreshBtn.Name = "guideRefreshBtn";
             this.guideRefreshBtn.Size = new System.Drawing.Size(23, 23);
             this.guideRefreshBtn.TabIndex = 14;
@@ -634,14 +637,6 @@
             // 
             this.IntervalTmr.Tick += new System.EventHandler(this.IntervalTmr_Tick);
             // 
-            // LiveviewBW
-            // 
-            this.LiveviewBW.WorkerReportsProgress = true;
-            this.LiveviewBW.WorkerSupportsCancellation = true;
-            this.LiveviewBW.DoWork += new System.ComponentModel.DoWorkEventHandler(this.LiveviewBW_DoWork);
-            this.LiveviewBW.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.LiveviewBW_ProgressChanged);
-            this.LiveviewBW.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.LiveviewBW_RunWorkerCompleted);
-            // 
             // ShutterBW
             // 
             this.ShutterBW.WorkerReportsProgress = true;
@@ -673,7 +668,7 @@
             this.resolutionChkBtn.Checked = true;
             this.resolutionChkBtn.CheckState = System.Windows.Forms.CheckState.Checked;
             this.resolutionChkBtn.Enabled = false;
-            this.resolutionChkBtn.Location = new System.Drawing.Point(22, 145);
+            this.resolutionChkBtn.Location = new System.Drawing.Point(20, 109);
             this.resolutionChkBtn.Name = "resolutionChkBtn";
             this.resolutionChkBtn.Size = new System.Drawing.Size(90, 17);
             this.resolutionChkBtn.TabIndex = 78;
@@ -685,7 +680,7 @@
             // 
             this.HPShutterChkBtn.AutoSize = true;
             this.HPShutterChkBtn.Enabled = false;
-            this.HPShutterChkBtn.Location = new System.Drawing.Point(22, 168);
+            this.HPShutterChkBtn.Location = new System.Drawing.Point(20, 132);
             this.HPShutterChkBtn.Name = "HPShutterChkBtn";
             this.HPShutterChkBtn.Size = new System.Drawing.Size(108, 17);
             this.HPShutterChkBtn.TabIndex = 79;
@@ -1011,7 +1006,7 @@
             // 
             // focusTB
             // 
-            this.focusTB.Location = new System.Drawing.Point(532, 566);
+            this.focusTB.Location = new System.Drawing.Point(38, 28);
             this.focusTB.Maximum = 180;
             this.focusTB.Name = "focusTB";
             this.focusTB.Size = new System.Drawing.Size(279, 45);
@@ -1022,12 +1017,34 @@
             // focusLbl
             // 
             this.focusLbl.AutoSize = true;
-            this.focusLbl.Location = new System.Drawing.Point(497, 566);
+            this.focusLbl.Location = new System.Drawing.Point(3, 28);
             this.focusLbl.Name = "focusLbl";
             this.focusLbl.Size = new System.Drawing.Size(36, 13);
             this.focusLbl.TabIndex = 84;
             this.focusLbl.Text = "Focus";
             this.focusLbl.Visible = false;
+            // 
+            // FocusPanel
+            // 
+            this.FocusPanel.Controls.Add(this.focusLbl);
+            this.FocusPanel.Controls.Add(this.focusTB);
+            this.FocusPanel.Location = new System.Drawing.Point(479, 549);
+            this.FocusPanel.Name = "FocusPanel";
+            this.FocusPanel.Size = new System.Drawing.Size(332, 79);
+            this.FocusPanel.TabIndex = 85;
+            // 
+            // CameraPanel
+            // 
+            this.CameraPanel.Controls.Add(this.ConnectBtn);
+            this.CameraPanel.Controls.Add(this.guideRefreshBtn);
+            this.CameraPanel.Controls.Add(this.guideChkBtn);
+            this.CameraPanel.Controls.Add(this.LiveviewBtn);
+            this.CameraPanel.Controls.Add(this.resolutionChkBtn);
+            this.CameraPanel.Controls.Add(this.HPShutterChkBtn);
+            this.CameraPanel.Location = new System.Drawing.Point(1, 34);
+            this.CameraPanel.Name = "CameraPanel";
+            this.CameraPanel.Size = new System.Drawing.Size(129, 195);
+            this.CameraPanel.TabIndex = 86;
             // 
             // Form1
             // 
@@ -1035,21 +1052,15 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1350, 729);
-            this.Controls.Add(this.focusLbl);
-            this.Controls.Add(this.focusTB);
+            this.Controls.Add(this.CameraPanel);
+            this.Controls.Add(this.FocusPanel);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.BoardAuxPanel);
             this.Controls.Add(this.TestControlPanel);
             this.Controls.Add(this.BoardPanel);
-            this.Controls.Add(this.HPShutterChkBtn);
-            this.Controls.Add(this.resolutionChkBtn);
             this.Controls.Add(this.captureBtn);
             this.Controls.Add(this.ManageChkBtn);
             this.Controls.Add(this.StartBtn);
-            this.Controls.Add(this.ConnectBtn);
-            this.Controls.Add(this.LiveviewBtn);
-            this.Controls.Add(this.guideChkBtn);
-            this.Controls.Add(this.guideRefreshBtn);
             this.Controls.Add(this.ImgGuide);
             this.Controls.Add(this.ConnectionTxt);
             this.Controls.Add(this.BStateLbl);
@@ -1083,6 +1094,10 @@
             ((System.ComponentModel.ISupportInitialize)(this.BASpeedTB)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.BAStepTB)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.focusTB)).EndInit();
+            this.FocusPanel.ResumeLayout(false);
+            this.FocusPanel.PerformLayout();
+            this.CameraPanel.ResumeLayout(false);
+            this.CameraPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1139,7 +1154,6 @@
         private System.Windows.Forms.CheckBox ManageChkBtn;
         private System.Windows.Forms.Button captureBtn;
         private System.Windows.Forms.Timer IntervalTmr;
-        private System.ComponentModel.BackgroundWorker LiveviewBW;
         private System.ComponentModel.BackgroundWorker ShutterBW;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.TextBox textBox2;
@@ -1172,6 +1186,8 @@
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.TrackBar focusTB;
         private System.Windows.Forms.Label focusLbl;
+        private System.Windows.Forms.Panel FocusPanel;
+        private System.Windows.Forms.Panel CameraPanel;
     }
 }
 

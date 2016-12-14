@@ -53,29 +53,31 @@ namespace Microscope_Control
 
         // Type definition of Camera related variables
 
+        Camera SonyQX10 = new Camera();
 
-        List<byte> imgData = new List<byte>();              // Byte list for storing image data
-        Stream imgStream;                                   // Data stream for image aquisition (Liveview)
-        StreamReader imgReader;                             // Stream reader for image data (Liveview)
+
+        //List<byte> imgData = new List<byte>();              // Byte list for storing image data
+        //Stream imgStream;                                   // Data stream for image aquisition (Liveview)
+        //StreamReader imgReader;                             // Stream reader for image data (Liveview)
         int i = 0;                                          // Multipropose counter
-        int imgSize = 0;                                    // Image size for data retrieval (Liveview)
-        int frameNo = 0;                                    // Frame No. (Liveview)
-        int paddingSize = 0;                                // Padding size (Liveview)
-        bool FlagLvw = false;                               // Flag to retrieve action on liveview event                   
-        bool CamConStatus = false;                          // Camera connection flag
-        byte[] buffer = new byte[520];                      // Data buffer for liveview
-        byte[] bufferAux = new byte[4];                     // Data auxiliar buffer for liveview
-        byte payloadType = 0;                               // Stores the payload type from liveview stream
-        string CamResponse = "";                            // Retrieves the camera response when any action is invoked
-        string lvwURL = "";                                 // Stores camera URL for liveview
-        bool shutterFlag = false;
+        //int imgSize = 0;                                    // Image size for data retrieval (Liveview)
+        //int frameNo = 0;                                    // Frame No. (Liveview)
+        //int paddingSize = 0;                                // Padding size (Liveview)
+        //bool FlagLvw = false;                               // Flag to retrieve action on liveview event                   
+        //bool CamConStatus = false;                          // Camera connection flag
+        //byte[] buffer = new byte[520];                      // Data buffer for liveview
+        //byte[] bufferAux = new byte[4];                     // Data auxiliar buffer for liveview
+        //byte payloadType = 0;                               // Stores the payload type from liveview stream
+        //string CamResponse = "";                            // Retrieves the camera response when any action is invoked
+        //string lvwURL = "";                                 // Stores camera URL for liveview
+        //bool shutterFlag = false;
         private static object locker = new object();
 
-        public class RootGetEvent
-        {
-            public int id { get; set; }
-            public JArray result { get; set; }
-        }
+        //public class RootGetEvent
+        //{
+        //    public int id { get; set; }
+        //    public JArray result { get; set; }
+        //}
 
         // The following Variables are related to the board managing and communication
 
@@ -125,7 +127,8 @@ namespace Microscope_Control
         public Form1()
         {
             InitializeComponent();
-            //CheckForIllegalCrossThreadCalls = false;
+            SonyQX10.InitializeCamera();
+            CheckForIllegalCrossThreadCalls = false;
             ImgGuide.BackColor = Color.Transparent;
             ImgGuide.Parent = ImgLiveview;
         }
@@ -135,12 +138,13 @@ namespace Microscope_Control
             //LiveviewBW.RunWorkerAsync();
             BConnectionCBox.Items.Add("Port selection");
             BConnectionCBox.SelectedIndex = 0;
+            SonyQX10.ConnectEvent += SonyQX10_ConnectEvent;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)                   // On close, zoom camera out, disconnect board
         {
-            if (CamConStatus)
-                CamResponse = SendRequest("actZoom", "\"out\",\"start\"");
+            if (SonyQX10.CamConStatus)
+                SonyQX10.CamResponse = SonyQX10.SendRequest("actZoom", "\"out\",\"start\"");
             if (serialPort1.IsOpen == true)
             {
                 Invoke(new EventHandler(Disconnect));
@@ -152,139 +156,87 @@ namespace Microscope_Control
         //      TODO:
         //              -
 
-
         private void ConnectBtn_Click(object sender, EventArgs e)                               // Manages the discovery routine to connect with camera DSC-QX10 (Must be connected to PC WiFi)
         {
-            try
+            if (!SonyQX10.CamConStatus)
             {
                 ConnectionTxt.Visible = true;
                 ConnectBtn.Enabled = false;
-
-                // Setup Client/Host Endpoints and communication socket
-                IPEndPoint LocalEndPoint = new IPEndPoint(IPAddress.Any, 60000);                                        // Creates Endpoint to connect with system client
-                IPEndPoint MulticastEndPoint = new IPEndPoint(IPAddress.Parse("239.255.255.250"), 1900);                // Creates Endpoint to connect with camera host (Multicast messages reserved address, Sony SDK)
-                Socket UdpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);          // Creates Socket for managing network communication
-                UdpSocket.Bind(LocalEndPoint);                                                                          // Asociates Local socket to external host (Camera)
-                ConnectionTxt.Text = ("Status\r\n\r\nUDP-Socket setup finished...\r\n");
-
-                // Sends discovery request to camera host (SSDP M-SEARCH)
-                string SearchString = "M-SEARCH * HTTP/1.1\r\nHOST:239.255.255.250:1900\r\nMAN:\"ssdp:discover\"\r\nMX:2\r\nST:urn:schemas-sony-com:service:ScalarWebAPI:1\r\n\r\n";
-                // SSDP M-SEARCH request (SONY SDK) string
-                UdpSocket.SendTo(Encoding.UTF8.GetBytes(SearchString), SocketFlags.None, MulticastEndPoint);            // Sends M-SEARCH request (8-bit Unicode) UNICAST
-                ConnectionTxt.AppendText("M-Search sent\r\n");
-
-                // Receives discovery response from camera UNICAST (TimedOut on 10 secs)
-                byte[] ReceiveBuffer = new byte[64000];
-                int ReceivedBytes = 0;
-                Thread TimeoutThread = new Thread(ThreadProc);
-                TimeoutThread.Start();
-                i = 0;
-                while (TimeoutThread.IsAlive)                                                                                            // Received Buffered response
-                {
-                    i += 1;
-                    if (i % 950000 == 0)
-                    {
-                        ConnectionTxt.AppendText("█");
-                    }
-                    if (UdpSocket.Available > 0)
-                    {
-                        ConnectionTxt.AppendText("r\\nConnection established\n");
-                        ReceivedBytes = UdpSocket.Receive(ReceiveBuffer, SocketFlags.None);
-
-                        if (ReceivedBytes > 0)
-                        {
-                            ConnectionTxt.AppendText(Encoding.UTF8.GetString(ReceiveBuffer, 0, ReceivedBytes));
-                            CamConStatus = true;
-                        }
-                        break;
-                    }
-                }
-                TimeoutThread.Abort();
-                if (CamConStatus)
-                {
-                    // Setups form objects OnConnect, Zooms camera in and sends request toreceive full resolution images.
-                    ConnectionTxt.AppendText("\r\n\rConnection successful =)  \n");
-                    CamResponse = SendRequest("setPostviewImageSize", "\"Original\"");
-                    CamResponse = SendRequest("actZoom", "\"in\",\"start\"");
-                    getEventTxt.Text = CamResponse;
-
-                    // Loads transparent logo to guide image (Done here to serve as a sleep function)
-                    Bitmap referenceImg = new Bitmap(ImgLogo.Image);
-                    Bitmap transparentImg = new Bitmap(ImgLogo.Image.Width, ImgLogo.Image.Height);
-                    Graphics tempG = Graphics.FromImage(referenceImg);
-                    Color c = Color.Transparent;
-                    Color v = Color.Transparent;
-                    for (int x = 0; x < ImgLogo.Image.Width; x++)
-                    {
-                        for (int y = 0; y < ImgLogo.Image.Height; y++)
-                        {
-                            c = referenceImg.GetPixel(x, y);
-                            v = Color.FromArgb(13, c.R, c.G, c.B);
-                            transparentImg.SetPixel(x, y, v);
-                        }
-                    }
-                    tempG.DrawImage(transparentImg, Point.Empty);
-                    ImgGuide.Image = transparentImg;
-                    ImgGuide.Location = new Point(0, 0);
-                    //**************** Control Visualization *************
-                    ConnectionTxt.Visible = false;
-                    ConnectionTxt.Text = "";
-                    LiveviewBtn.Enabled = true;
-                    resolutionChkBtn.Enabled = true;
-                    HPShutterChkBtn.Enabled = true;
-                    if (ConSuc)
-                    {
-                        focusTB.Visible = true;
-                        focusLbl.Visible = true;
-                        BShutterBtn.Enabled = true;
-                        StartBtn.Enabled = true;
-                        ManageChkBtn.Enabled = true;
-                    }
-                    //******************************************************
-                }
-                else
-                {
-                    ConnectBtn.Enabled = true;
-                    ConnectionTxt.AppendText("\r\n\r\nFailed: Connection TimedOut =(  \n");
-                    UdpSocket.Close();
-                }
+                SonyQX10.Connect.RunWorkerAsync();
             }
-            catch (Exception ex)
+            else
             {
-                ConnectionTxt.Text = ex.Message;
+                ConnectBtn.Enabled = false;
+                if (SonyQX10.FlagLvw)
+                {
+                    ImgLiveview.Visible = false;
+                    SonyQX10.FlagLvw = false;
+                    SonyQX10.LiveView.CancelAsync();
+                    SonyQX10.CamResponse = SonyQX10.SendRequest("stopLiveview", "");                              // Send action request to camera host to stop liveview
+                    guideChkBtn.Enabled = false;
+                    SonyQX10.imgStream.Close();
+                    SonyQX10.imgReader.Close();
+                }
+                //**************** Control Visualization *************
+                ConnectBtn.Text = ("Connect Camera");
+                ConnectionTxt.Visible = false;
+                ConnectionTxt.Text = "";
+                foreach (Control control in CameraPanel.Controls)
+                {
+                    control.Enabled = false;
+                    if (control is CheckBox)
+                    {
+                        if (control.Name == "resolutionChkBtn")
+                            ((CheckBox)control).Checked = true;
+                        else
+                            ((CheckBox)control).Checked = false;
+                    }
+
+                }
+                FocusPanel.Visible = false;
+                //******************************************************
+                SonyQX10.Disconnect.RunWorkerAsync();
             }
         }
 
         private void LiveviewBtn_Click(object sender, EventArgs e)                              // Manages beginning/end of liveview
         {
-            if (!FlagLvw)
+            if (!SonyQX10.FlagLvw)
             {
-                // Start liveview Background Worker (Send HTTP GET request, calls Liveview handler)
-                FlagLvw = true;
+                // Start liveview Background Worker (Send HTTP GET request, calls Liveview Background worker)
+                SonyQX10.FlagLvw = true;
                 ImgLiveview.Visible = true;
-                CamResponse = SendRequest("startLiveview", "");                             // Send action request to camera host to start liveview
-                lvwURL = ReadRequestJson(CamResponse,0);                                    // Setup the URL for the liveview download
-                WebRequest lvwRequest = WebRequest.Create(lvwURL);                          // Create a request using the camera liveview URL, send HTTP GET request
+                SonyQX10.CamResponse = SonyQX10.SendRequest("startLiveview", "");                               // Send action request to camera host to start liveview
+                SonyQX10.lvwURL = SonyQX10.ReadRequestJson(SonyQX10.CamResponse, 0);                                     // Setup the URL for the liveview download
+                WebRequest lvwRequest = WebRequest.Create(SonyQX10.lvwURL);                                              // Create a request using the camera liveview URL, send HTTP GET request
                 lvwRequest.Method = "GET";
                 lvwRequest.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
-                imgStream = lvwRequest.GetResponse().GetResponseStream();                   // Setup and get the request stream response
-                imgReader = new StreamReader(imgStream);
-                if (LiveviewBW.IsBusy != true)
-                    LiveviewBW.RunWorkerAsync();
+                SonyQX10.imgStream = lvwRequest.GetResponse().GetResponseStream();                              // Setup and get the request stream response
+                SonyQX10.imgReader = new StreamReader(SonyQX10.imgStream);
+                if (SonyQX10.LiveView.IsBusy != true)
+                    SonyQX10.LiveView.RunWorkerAsync();
                 guideChkBtn.Enabled = true;
             }
             else
             {
                 ImgLiveview.Visible = false;
-                FlagLvw = false;
-                LiveviewBW.CancelAsync();
-                CamResponse = SendRequest("stopLiveview", "");                              // Send action request to camera host to stop liveview
+                SonyQX10.FlagLvw = false;
+                SonyQX10.LiveView.CancelAsync();
+                SonyQX10.CamResponse = SonyQX10.SendRequest("stopLiveview", "");                                // Send action request to camera host to stop liveview
                 guideChkBtn.Enabled = false;
-                imgStream.Close();
-                imgReader.Close();
+                SonyQX10.imgStream.Close();
+                SonyQX10.imgReader.Close();
             }
-            ConnectionTxt.AppendText(CamResponse + "\r\n");
+            ConnectionTxt.AppendText(SonyQX10.CamResponse + "\r\n");
         }
+
+        private void BShutterBtn_Click(object sender, EventArgs e)                              // Starts a shutter routine, calls Background Worker
+        {
+            SonyQX10.shutterFlag = true;
+            BShutterBtn.Enabled = false;
+            ShutterBW.RunWorkerAsync();
+        }
+
 
         private void guideRefreshBtn_Click(object sender, EventArgs e)                          // Loads image from live view to be frozen and displayed as a guide frame
         {
@@ -292,23 +244,9 @@ namespace Microscope_Control
             Bitmap referenceImg;
             lock (locker)                                                                       // Calls lock on objects (necessary for avoiding issues on image load)
                 referenceImg = new Bitmap(ImgLiveview.Image);
-            Bitmap transparentImg = new Bitmap(referenceImg.Width, referenceImg.Height);        // Aquires Image from Liveview
-            Graphics tempG = Graphics.FromImage(referenceImg);
-            Color c = Color.Transparent;
-            Color v = Color.Transparent;
-            for (int x = 0; x < referenceImg.Width; x++)                                        // Sweeps image pixels to change opacity
-            {
-                for (int y = 0; y < referenceImg.Height; y++)
-                {
-                    c = referenceImg.GetPixel(x, y);
-                    v = Color.FromArgb(60, c.R, c.G, c.B);
-                    transparentImg.SetPixel(x, y, v);
-                }
-            }
-            tempG.DrawImage(transparentImg, Point.Empty);                                       // Loads Tranparent(ed) image on ImgGuide
-            ImgGuide.Image = transparentImg;
+            TImage(referenceImg, 60);
         }
-
+        
         private void guideChkBtn_CheckedChanged(object sender, EventArgs e)                     // Visualize frozen image to use it as a guide in liveview
         {
             if (guideChkBtn.Checked)
@@ -324,238 +262,128 @@ namespace Microscope_Control
 
         }
 
-        private void resolutionChkBtn_CheckedChanged(object sender, EventArgs e)
+        private void resolutionChkBtn_CheckedChanged(object sender, EventArgs e)                // Changes generated image resolution
         {
             if (resolutionChkBtn.Checked)
             {
-                CamResponse = SendRequest("setPostviewImageSize", "\"Original\"");
+                SonyQX10.CamResponse = SonyQX10.SendRequest("setPostviewImageSize", "\"Original\"");
             }
             else
             {
-                CamResponse = SendRequest("setPostviewImageSize", "\"2M\"");
+                SonyQX10.CamResponse = SonyQX10.SendRequest("setPostviewImageSize", "\"2M\"");
             }
         }
-
-        private void HPShutterChkBtn_CheckedChanged(object sender, EventArgs e)
+        
+        private void HPShutterChkBtn_CheckedChanged(object sender, EventArgs e)                 // Activates Half-Press Shutter action
         {
             if (HPShutterChkBtn.Checked)
             {
-                CamResponse = SendRequest("actHalfPressShutter");
+                SonyQX10.CamResponse = SonyQX10.SendRequest("actHalfPressShutter");
             }
             else
             {
-                CamResponse = SendRequest("cancelHalfPressShutter");
+                SonyQX10.CamResponse = SonyQX10.SendRequest("cancelHalfPressShutter");
             }
         }
 
-        private string SendRequest(params string[] data)                                        // Gives format to the action request, manages sending request and receiving response. Output: Response JSON string
-        {
-            Array.Resize(ref data, 3);                                                                              // Arrange input data (Arranges a 3-item array)
-            string method = data[0];                                                                                // Sets default values for parameters and version
-            string param = ("");
-            string version = ("1.0");
-            if (data[1] != null)                                                                                    // Assigns input values (If any)
-            {
-                param = data[1];
-            }
-            if (data[2] != null)
-            {
-                version = data[2];
-            }
-            string responseF;                                                                                       // String for storing camera response (Return)
-            try
-            {
-                // Create POST data and convert it to a byte array (Set the ContentType property of the WebRequest to an 8-bit Unicode). Data is not Serialized to JSON due that params (required property) is a C# keyword
-                string postData = "{\"method\": \"" + method + "\",\"params\": [" + param + "],\"id\": 1,\"version\": \"" + version + "\"}";
-                byte[] byteArray = Encoding.UTF8.GetBytes(postData);
 
-                // Send action request
-                WebRequest request = WebRequest.Create("http://10.0.0.1:10000/sony/camera ");                       // Create a request using the camera Action list URL
-                request.Method = "POST";                                                                            // Set the Method property of the request to POST
-                request.ContentType = "application/json; charset=utf-8";                                            // Set the request content type to match JSON encoding
-                request.ContentLength = byteArray.Length;                                                           // Set the ContentLength property of the WebRequest
-                Stream dataStream = request.GetRequestStream();                                                     // Get the request stream
-                dataStream.Write(byteArray, 0, byteArray.Length);                                                   // Write the data to the request stream
-                dataStream.Close();                                                                                 // Close the Stream object
 
-                // Receive camera (Host) response
-                WebResponse response = request.GetResponse();                                                       // Display the status
-                //ConnectionTxt.AppendText(((HttpWebResponse)response).StatusDescription);
-                dataStream = response.GetResponseStream();                                                          // Open the stream using a StreamReader for easy access
-                StreamReader reader = new StreamReader(dataStream);
-                string responseFromServer = reader.ReadToEnd();
-                //ConnectionTxt.AppendText(responseFromServer);
 
-                // Close Objects
-                reader.Close();                                                                                     // Closes reader, stream object and response
-                dataStream.Close();
-                response.Close();
-                responseF = responseFromServer;
-            }
-            catch (Exception e)
+        private void TImage(Bitmap referenceImg, int opacity)                                   // Loads a transparent image on the image guide picturebox
+        {
+
+            Bitmap transparentImg = new Bitmap(referenceImg.Width, referenceImg.Height);        // Aquires Image from Liveview
+            Graphics tempG = Graphics.FromImage(referenceImg);
+            Color c = Color.Transparent;
+            Color v = Color.Transparent;
+            for (int x = 0; x < referenceImg.Width; x++)                                        // Sweeps image pixels to change opacity
             {
-                ConnectionTxt.Text = e.Message;
-                responseF = "";
-            }
-            return responseF;
-        }
-        
-        private string ReadRequestJson(string json, int order, string key, int item)            // Reads JSON format and returns specified property: 
-        {
-            RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
-            string property = myjson.result[order][key][item].ToString();
-            return property;
-        }
-        private string ReadRequestJson(string json, int order, string key)                      //      Uses the JSON string, the order number and the string key (Ref. Sony remote camera API reference document) 
-        {
-            RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
-            string property = myjson.result[order][key].ToString();
-            return property;
-        }
-        private string ReadRequestJson(string json, int order, int key)                         //      Uses the JSON string, the order number and number key (Ref. Sony remote camera API reference document)
-        {
-            RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
-            string property = myjson.result[order][key].ToString();
-            return property;
-        }
-        private string ReadRequestJson(string json, int order)                                  //      Uses the JSON string and the order number (Ref. Sony remote camera API reference document)
-        {
-            RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
-            string property = myjson.result[order].ToString();
-            return property;
-        }
-        private string ReadRequestJson(string json)                                             //      Uses only the JSON string (Ref. Sony remote camera API reference document)
-        {
-            RootGetEvent myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
-            string property = myjson.result.ToString();
-            return property;
-        }
-
-        private static void ThreadProc()                                                        // Connection timer, manages timeout OnConnection to cammera
-        {
-            Thread.Sleep(10000);
-        }
-
-        private void LiveviewBW_DoWork(object sender, DoWorkEventArgs e)                        // Request liveview image, reads and stores image 
-        {
-            BackgroundWorker bw = sender as BackgroundWorker;
-            try
-            {
-                while (bw.CancellationPending == false)
+                for (int y = 0; y < referenceImg.Height; y++)
                 {
-                    using (var memstream = new MemoryStream())
-                    {
-                        imgData = new List<byte>();
-                        buffer = new byte[520];
-                        bufferAux = new byte[4];
-                        payloadType = 0;
-                        imgSize = 0;
-                        frameNo = -1;
-                        paddingSize = 0;
-
-                        GetHeader:                                                          // Retrieves a byte(s) from the stream to check if it corresponds to Sony header construction
-
-                        // Common Header (8 Bytes)
-                        //buffer = new byte[520];
-                        imgReader.BaseStream.Read(buffer, 0, 1);                            // Seeks for start byte
-                        var start = buffer[0];
-                        if (start != 0xff)
-                            goto GetHeader;
-
-                        //buffer = new byte[520];
-                        imgReader.BaseStream.Read(buffer, 0, 1);                            // Stores payload Type
-                        payloadType = (buffer[0]);
-                        if (!((payloadType == 1) || (payloadType == 2)))
-                            goto GetHeader;
-
-                        //buffer = new byte[520];
-                        imgReader.BaseStream.Read(buffer, 0, 2);                            // Stores Frame Number depending Payload type
-                        if (payloadType == 1)
-                            frameNo = BitConverter.ToUInt16(buffer, 0);
-
-                        imgReader.BaseStream.Read(buffer, 0, 4);                            // Discards expected Time stamp
-
-                        // Payload header (128 bytes)
-                        //buffer = new byte[520];
-                        imgReader.BaseStream.Read(buffer, 0, 4);
-                        if (!((buffer[0] == 0x24) & (buffer[1] == 0x35) & (buffer[2] == 0x68) & (buffer[3] == 0x79)))
-                            goto GetHeader;                                                 // If the start code does not correspond to fixed code (0x24, 0x35, 0x68, 0x79), starts over
-
-                        //bufferAux = new byte[4];
-                        imgReader.BaseStream.Read(bufferAux, 0, 4);
-                        paddingSize = bufferAux[3];
-                        bufferAux[3] = bufferAux[2];
-                        bufferAux[2] = bufferAux[1];
-                        bufferAux[1] = bufferAux[0];
-                        bufferAux[0] = 0;
-                        Array.Reverse(bufferAux);
-                        imgSize = BitConverter.ToInt32(bufferAux, 0);                       // Reads and translates Data stream size
-
-                        if (payloadType == 1)                                               // Case JPEG data
-                        {
-                            imgReader.BaseStream.Read(buffer, 0, 120);
-                            while (imgData.Count < imgSize)
-                            {
-                                //buffer = new byte[520];
-                                imgReader.BaseStream.Read(buffer, 0, 1);
-                                imgData.Add(buffer[0]);
-                            }
-                        }
-
-                        //getEventTxt.AppendText("Image size: " + imgData.Count.ToString());
-                        MemoryStream stream = new MemoryStream(imgData.ToArray());
-                        BinaryReader reader = new BinaryReader(stream);
-                        Bitmap bmpImage = (Bitmap)Image.FromStream(stream);
-
-                        //if (ImgLiveview.Image != null)
-                        //    ImgLiveview.Image.Dispose();
-
-                        //ImgLiveview.Image = bmpImage;
-                        if (bmpImage != null)
-                            bw.ReportProgress(0, bmpImage);
-                    }
+                    c = referenceImg.GetPixel(x, y);
+                    v = Color.FromArgb(opacity, c.R, c.G, c.B);
+                    transparentImg.SetPixel(x, y, v);
                 }
-
             }
-            catch (Exception ex)
-            {
-                //MessageBox.Show(ex.Message);
-                // ConnectionTxt.Text = ex.Message;
-            }
-            e.Cancel = true;
+            tempG.DrawImage(transparentImg, Point.Empty);                                       // Loads Tranparent(ed) image on ImgGuide
+            ImgGuide.Image = transparentImg;
         }
 
-        private void LiveviewBW_ProgressChanged(object sender, ProgressChangedEventArgs e)      // Retrieves liveview image and loads to screen on load completition
+        void SonyQX10_ConnectEvent(object sender, ConnectEventArgs e)
         {
-            lock (locker)
-                ImgLiveview.Image = (Bitmap)e.UserState;
+            switch (e.ConnectionState)
+            {
+                case "UDP":
+                    ConnectionTxt.Text = ("Status\r\n\r\nUDP-Socket setup finished...\r\n");
+                    ;
+                    break;
+                case "MSEARCH":
+                    ConnectionTxt.AppendText("M-Search sent\r\n");
+                    break;
+                case "WAIT":
+                    ConnectionTxt.AppendText("█");
+                    break;
+                case "CONNECTED":
+                    ConnectionTxt.AppendText("\r\nConnection established\n");
+                    break;
+                case "SUCCESS":
+                    ConnectionTxt.AppendText("\r\n\rConnection successful =)  \n");
+                    getEventTxt.Text = SonyQX10.CamResponse;
+                    // Loads transparent logo to guide image (Done here to serve as a sleep function)
+                    TImage(new Bitmap(ImgLogo.Image), 13);
+                    ImgGuide.Location = new Point(0, 0);
+                    //**************** Control Visualization *************
+                    ConnectionTxt.Visible = false;
+                    ConnectionTxt.Text = "";
+                    LiveviewBtn.Enabled = true;
+                    resolutionChkBtn.Enabled = true;
+                    HPShutterChkBtn.Enabled = true;
+                    ConnectBtn.Enabled = true;
+                    ConnectBtn.Text = ("Disconnect Camera");
+                    if (ConSuc)
+                    {
+                        BShutterBtn.Enabled = true;
+                        StartBtn.Enabled = true;
+                        ManageChkBtn.Enabled = true;
+                    }
+                    //******************************************************
+                    break;
+                case "NOTCONNECTED":
+                    ConnectBtn.Enabled = true;
+                    ConnectionTxt.AppendText("\r\n\r\nFailed: Connection TimedOut =(  \n");
+                    break;
+                case "DISCONNECT":
+                        ConnectBtn.Enabled = true;
+                        break;
+                case "LIVEVIEW":
+                    if (SonyQX10.bmpImage != null)
+                    {
+                        lock (locker)
+                            ImgLiveview.Image = SonyQX10.bmpImage;
+                    }
+                    break;
+                default:
+                    ConnectionTxt.AppendText(e.ConnectionState);
+                    break;
+            }
         }
 
-        private void LiveviewBW_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            if (e.Cancelled == true)
-            {
-                //resultLabel.Text = "Canceled!";
-            }
-            else if (e.Error != null)
-            {
-                //resultLabel.Text = "Error: " + e.Error.Message;
-            }
-            else
-            {
-                //resultLabel.Text = "Done!";
-            }
-        }
 
+
+
+
+
+
+        
         private void ShutterBW_DoWork(object sender, DoWorkEventArgs e)                         // Sends HTTP GET request for camera shutter (Manages saving image)
         {
-            if (LiveviewBW.IsBusy != true)
-                LiveviewBW.CancelAsync();
+            if (SonyQX10.LiveView.IsBusy != true)
+                SonyQX10.LiveView.CancelAsync();
             BackgroundWorker worker = sender as BackgroundWorker;
             WebClient imageClient = new WebClient();                                                // Initializes webclient for image managing
             onSave = true;                                                                          // Sets OnSave flag
-            CamResponse = SendRequest("actTakePicture", "");                                        // Sends HTTP GET request, retrieves image URL
-            string imgURL = ReadRequestJson(CamResponse, 0, 0);                                            //NON JSON SOLUTION: CamResponse.Substring(20).Split('\"').FirstOrDefault();
+            SonyQX10.CamResponse = SonyQX10.SendRequest("actTakePicture", "");                                        // Sends HTTP GET request, retrieves image URL
+            string imgURL = SonyQX10.ReadRequestJson(SonyQX10.CamResponse, 0, 0);                                            //NON JSON SOLUTION: CamResponse.Substring(20).Split('\"').FirstOrDefault();
             string name = "";
             string path = "";
             if (shutterFlag)                                                                        // On shutter action, saves file to location
@@ -574,8 +402,8 @@ namespace Microscope_Control
                 DirectoryInfo di = Directory.CreateDirectory(path);
             }
             worker.ReportProgress(10);                                                              // If action needed on shutter use this
-            if (LiveviewBW.IsBusy != true)
-                LiveviewBW.RunWorkerAsync();
+            if (SonyQX10.LiveView.IsBusy != true)
+                SonyQX10.LiveView.RunWorkerAsync();
 
             imageClient.DownloadFile(imgURL, path + "\\" + name);                                   // Saves File
         }
@@ -647,35 +475,53 @@ namespace Microscope_Control
 
         private void getEventBtn_Click(object sender, EventArgs e)                              // Test Button (Not visible) Requests Events to camera
         {
-            //************* Reads JSON format (Returns camera status) *********************
-            string json = SendRequest("getEvent", "false", "1.1");
-            var myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
-            textBox1.Text = ("");
-            //************* Visualizes JSON response **************************************
-            for (i = 0; i < myjson.result.Count; i++)
-            {
-                if ((myjson.result[i]) != null)
-                {
-                    textBox1.AppendText("\r\n" + i + ")\r\n");
-                    textBox1.AppendText(myjson.result[i].ToString());
-                }
-            }
+            //*************** Shows JSON as string ******************************************
+            string json = SonyQX10.SendRequest("getEvent", "false", "1.1");
+            var myjson = JsonConvert.DeserializeObject<string>(json);//JsonConvert.DeserializeObject<RootGetEvent>(json);
+            textBox1.Text = (myjson);
+            ////************* Reads JSON format (Returns camera status) *********************
+            //string json = SonyQX10.SendRequest("getEvent", "false", "1.1");
+            //var myjson = JsonConvert.DeserializeObject<RootGetEvent>(json);
+            //textBox1.Text = ("");
+            ////************* Visualizes JSON response **************************************
+            //for (i = 0; i < myjson.result.Count; i++)
+            //{
+            //    if ((myjson.result[i]) != null)
+            //    {
+            //        textBox1.AppendText("\r\n" + i + ")\r\n");
+            //        textBox1.AppendText(myjson.result[i].ToString());
+            //    }
+            //}
             //************* Visualizes Camera status **************************************
-            textBox2.Text = myjson.result[1]["cameraStatus"].ToString();
+            textBox2.Text = SonyQX10.ReadRequestJson(json, 10, 0, "numberOfRecordableImages"); //myjson.result[1]["cameraStatus"].ToString();
         }
 
         private void TestBtn_Click(object sender, EventArgs e)                                  // Test Button (Not available) <INSERT YOUR TEST CODE HERE>
         {
             //************ Take picture ************************************
-            //CamResponse = SendRequest("actTakePicture", "");
+            //CamResponse = SonyQX10.SendRequest("actTakePicture", "");
 
             //************ Check received info from board ******************
-            BStateLbl.Text = RxString;
+            //BStateLbl.Text = RxString;
+
+            //************ Available functions *****************************
+            //string json = SonyQX10.SendRequest("getAvailableApiList", " ", "1.0");
+            //textBox1.Text = json;
+
+            //************ Storage information *****************************
+            //string json = SonyQX10.SendRequest("getStorageInformation", " ", "1.0");
+            //textBox1.Text = json;
+
+            //************ Zoom information ********************************
+            string json = SonyQX10.SendRequest("getEvent", "false", "1.1");
+            textBox2.Text = Convert.ToInt32(SonyQX10.ReadRequestJson(json, 2, "zoomPosition")).ToString();
+
+
         }
 
         private void timer1_Tick(object sender, EventArgs e)                                    // Test timer (Not available) <INSERT YOUR TEST CODE HERE>
         {
-            progressBar1.Value += 1; 
+            progressBar1.Value += 1;
         }
 
         private void pictureBox3_LoadCompleted(object sender, AsyncCompletedEventArgs e)        // Test image, load finished (Not loaded)
@@ -896,13 +742,6 @@ namespace Microscope_Control
             }
         }
 
-        private void BShutterBtn_Click(object sender, EventArgs e)                              // Starts a shutter routine, calls Background Worker
-        {
-            shutterFlag = true;
-            BShutterBtn.Enabled = false;
-            ShutterBW.RunWorkerAsync();
-        }
-
         private void BSaveBtn_Click(object sender, EventArgs e)                                 // Saves data on calibration
         {
             Busy = true;
@@ -1057,7 +896,7 @@ namespace Microscope_Control
                 serialPort1.WriteLine(TxString);
             }
         }
-        
+
         private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)     // Actions on connection, manages received requests
         {
             Array.Resize(ref byteRead, serialPort1.BytesToRead);
@@ -1094,7 +933,7 @@ namespace Microscope_Control
                     {
                         control.Enabled = true;
                     }
-                    if (CamConStatus)
+                    if (SonyQX10.CamConStatus)
                     {
                         focusTB.Visible = true;
                         focusLbl.Visible = true;
@@ -1207,7 +1046,7 @@ namespace Microscope_Control
                         MoveStage(BStepTB.Value, 'P', '@');                                              // Sends movement request to board
                         break;
                     case "IF":                                                                      // Information received
-                        if (byteRead.Length<12)
+                        if (byteRead.Length < 12)
                         {
                             Busy = true;
                             receivedAction = false;
@@ -1215,8 +1054,8 @@ namespace Microscope_Control
                         }
                         receivedAction = true;
                         Busy = false;
-                        string[] tempstring= new string[4];                                         // Decode and allocate data
-                        tempstring[0] = BitConverter.ToUInt16(byteRead,4).ToString();
+                        string[] tempstring = new string[4];                                         // Decode and allocate data
+                        tempstring[0] = BitConverter.ToUInt16(byteRead, 4).ToString();
                         tempstring[1] = BitConverter.ToUInt16(byteRead, 6).ToString();
                         tempstring[2] = BitConverter.ToUInt16(byteRead, 8).ToString();
                         tempstring[3] = BitConverter.ToUInt16(byteRead, 10).ToString();
@@ -1305,7 +1144,7 @@ namespace Microscope_Control
                             MoveStage(Convert.ToInt32(BStepTxt.Text), 'Z', '@');
                             break;
                         }
-                        if (onAuxiliar==true)
+                        if (onAuxiliar == true)
                         {
                             onAuxiliar = false;
                             MoveStage(Convert.ToInt32(BStepTxt.Text) * TotalFrames, 'S', '@');
@@ -1350,12 +1189,12 @@ namespace Microscope_Control
                 BStateLbl.Text += ("\nMoving main...");
             }
             else if (ID == '~')
-            { 
+            {
                 PosAux = steps;
                 BStateLbl.Text += ("\nMoving auxiliar...");
             }
             byte[] bytePos = BitConverter.GetBytes(steps);
-            byte[] sendthis = new byte[] { Convert.ToByte(ID), session[0], Convert.ToByte(inst), bytePos[0], bytePos[1],0X0A};
+            byte[] sendthis = new byte[] { Convert.ToByte(ID), session[0], Convert.ToByte(inst), bytePos[0], bytePos[1], 0X0A };
             serialPort1.Write(sendthis, 0, sendthis.Length);
         }
 
@@ -1539,7 +1378,7 @@ namespace Microscope_Control
             BStateLbl.Text = ("Sinchronizing Configuration...");
             foreach (Control control in BoardPanel.Controls)
             {
-                    control.Enabled = false;
+                control.Enabled = false;
             }
             foreach (Control control in BoardAuxPanel.Controls)
             {
