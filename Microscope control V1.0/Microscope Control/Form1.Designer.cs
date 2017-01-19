@@ -43,7 +43,6 @@
             this.guideChkBtn = new System.Windows.Forms.CheckBox();
             this.ImgAux = new System.Windows.Forms.PictureBox();
             this.ImgLogo = new System.Windows.Forms.PictureBox();
-            this.serialPort1 = new System.IO.Ports.SerialPort(this.components);
             this.guideRefreshBtn = new System.Windows.Forms.Button();
             this.BShutterBtn = new System.Windows.Forms.Button();
             this.BStepMaxLbl = new System.Windows.Forms.Label();
@@ -79,7 +78,6 @@
             this.ManageChkBtn = new System.Windows.Forms.CheckBox();
             this.captureBtn = new System.Windows.Forms.Button();
             this.IntervalTmr = new System.Windows.Forms.Timer(this.components);
-            this.ShutterBW = new System.ComponentModel.BackgroundWorker();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.resolutionChkBtn = new System.Windows.Forms.CheckBox();
@@ -112,7 +110,12 @@
             this.focusTB = new System.Windows.Forms.TrackBar();
             this.focusLbl = new System.Windows.Forms.Label();
             this.FocusPanel = new System.Windows.Forms.Panel();
+            this.calibrationChkBtn = new System.Windows.Forms.CheckBox();
+            this.CalibrationBtn = new System.Windows.Forms.Button();
             this.CameraPanel = new System.Windows.Forms.Panel();
+            this.CommentBtn = new System.Windows.Forms.Button();
+            this.NoteChkBtn = new System.Windows.Forms.CheckBox();
+            this.CapturePanel = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.ImgLiveview)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgGuide)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgAux)).BeginInit();
@@ -130,6 +133,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.focusTB)).BeginInit();
             this.FocusPanel.SuspendLayout();
             this.CameraPanel.SuspendLayout();
+            this.CapturePanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // TestBtn
@@ -155,7 +159,7 @@
             // 
             // timer1
             // 
-            this.timer1.Interval = 1;
+            this.timer1.Interval = 10;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // ConnectBtn
@@ -260,10 +264,6 @@
             this.ImgLogo.TabIndex = 12;
             this.ImgLogo.TabStop = false;
             // 
-            // serialPort1
-            // 
-            this.serialPort1.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
-            // 
             // guideRefreshBtn
             // 
             this.guideRefreshBtn.Enabled = false;
@@ -278,7 +278,7 @@
             // BShutterBtn
             // 
             this.BShutterBtn.Enabled = false;
-            this.BShutterBtn.Location = new System.Drawing.Point(24, 8);
+            this.BShutterBtn.Location = new System.Drawing.Point(21, 108);
             this.BShutterBtn.Name = "BShutterBtn";
             this.BShutterBtn.Size = new System.Drawing.Size(75, 23);
             this.BShutterBtn.TabIndex = 57;
@@ -289,7 +289,6 @@
             // BStepMaxLbl
             // 
             this.BStepMaxLbl.AutoSize = true;
-            this.BStepMaxLbl.Enabled = false;
             this.BStepMaxLbl.Location = new System.Drawing.Point(307, 121);
             this.BStepMaxLbl.Name = "BStepMaxLbl";
             this.BStepMaxLbl.Size = new System.Drawing.Size(51, 13);
@@ -298,7 +297,6 @@
             // 
             // BStepMax2Btn
             // 
-            this.BStepMax2Btn.Enabled = false;
             this.BStepMax2Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BStepMax2Btn.Location = new System.Drawing.Point(364, 116);
             this.BStepMax2Btn.Name = "BStepMax2Btn";
@@ -310,7 +308,6 @@
             // 
             // BStepMax1Btn
             // 
-            this.BStepMax1Btn.Enabled = false;
             this.BStepMax1Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BStepMax1Btn.Location = new System.Drawing.Point(279, 116);
             this.BStepMax1Btn.Name = "BStepMax1Btn";
@@ -323,7 +320,6 @@
             // BStepTBLbl
             // 
             this.BStepTBLbl.AutoSize = true;
-            this.BStepTBLbl.Enabled = false;
             this.BStepTBLbl.Location = new System.Drawing.Point(26, 177);
             this.BStepTBLbl.Name = "BStepTBLbl";
             this.BStepTBLbl.Size = new System.Drawing.Size(32, 13);
@@ -334,7 +330,7 @@
             // 
             this.BStateLbl.AutoSize = true;
             this.BStateLbl.Enabled = false;
-            this.BStateLbl.Location = new System.Drawing.Point(1031, 34);
+            this.BStateLbl.Location = new System.Drawing.Point(996, 33);
             this.BStateLbl.Name = "BStateLbl";
             this.BStateLbl.Size = new System.Drawing.Size(37, 13);
             this.BStateLbl.TabIndex = 51;
@@ -342,7 +338,6 @@
             // 
             // BSaveBtn
             // 
-            this.BSaveBtn.Enabled = false;
             this.BSaveBtn.Location = new System.Drawing.Point(424, 225);
             this.BSaveBtn.Name = "BSaveBtn";
             this.BSaveBtn.Size = new System.Drawing.Size(75, 23);
@@ -353,7 +348,6 @@
             // 
             // BStepSetBtn
             // 
-            this.BStepSetBtn.Enabled = false;
             this.BStepSetBtn.Location = new System.Drawing.Point(300, 23);
             this.BStepSetBtn.Name = "BStepSetBtn";
             this.BStepSetBtn.Size = new System.Drawing.Size(75, 23);
@@ -364,7 +358,6 @@
             // 
             // BStepMaxBtn
             // 
-            this.BStepMaxBtn.Enabled = false;
             this.BStepMaxBtn.Location = new System.Drawing.Point(219, 23);
             this.BStepMaxBtn.Name = "BStepMaxBtn";
             this.BStepMaxBtn.Size = new System.Drawing.Size(75, 23);
@@ -375,7 +368,6 @@
             // 
             // BStepMinBtn
             // 
-            this.BStepMinBtn.Enabled = false;
             this.BStepMinBtn.Location = new System.Drawing.Point(138, 23);
             this.BStepMinBtn.Name = "BStepMinBtn";
             this.BStepMinBtn.Size = new System.Drawing.Size(75, 23);
@@ -387,7 +379,6 @@
             // BCycleCountLbl
             // 
             this.BCycleCountLbl.AutoSize = true;
-            this.BCycleCountLbl.Enabled = false;
             this.BCycleCountLbl.Location = new System.Drawing.Point(169, 57);
             this.BCycleCountLbl.Name = "BCycleCountLbl";
             this.BCycleCountLbl.Size = new System.Drawing.Size(13, 13);
@@ -397,7 +388,6 @@
             // BTimeLbl
             // 
             this.BTimeLbl.AutoSize = true;
-            this.BTimeLbl.Enabled = false;
             this.BTimeLbl.Location = new System.Drawing.Point(25, 85);
             this.BTimeLbl.Name = "BTimeLbl";
             this.BTimeLbl.Size = new System.Drawing.Size(30, 13);
@@ -406,16 +396,15 @@
             // 
             // BTimeTxt
             // 
-            this.BTimeTxt.Enabled = false;
             this.BTimeTxt.Location = new System.Drawing.Point(64, 81);
             this.BTimeTxt.Name = "BTimeTxt";
             this.BTimeTxt.Size = new System.Drawing.Size(68, 20);
             this.BTimeTxt.TabIndex = 39;
             this.BTimeTxt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.BTimeTxt.TextChanged += new System.EventHandler(this.BTimeTxt_TextChanged);
             // 
             // BCycleSetBtn
             // 
-            this.BCycleSetBtn.Enabled = false;
             this.BCycleSetBtn.Location = new System.Drawing.Point(219, 51);
             this.BCycleSetBtn.Name = "BCycleSetBtn";
             this.BCycleSetBtn.Size = new System.Drawing.Size(75, 23);
@@ -427,7 +416,6 @@
             // BCycleLbl
             // 
             this.BCycleLbl.AutoSize = true;
-            this.BCycleLbl.Enabled = false;
             this.BCycleLbl.Location = new System.Drawing.Point(25, 57);
             this.BCycleLbl.Name = "BCycleLbl";
             this.BCycleLbl.Size = new System.Drawing.Size(33, 13);
@@ -436,7 +424,6 @@
             // 
             // BCycle2Btn
             // 
-            this.BCycle2Btn.Enabled = false;
             this.BCycle2Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BCycle2Btn.Location = new System.Drawing.Point(191, 51);
             this.BCycle2Btn.Name = "BCycle2Btn";
@@ -449,7 +436,6 @@
             // BStepLbl
             // 
             this.BStepLbl.AutoSize = true;
-            this.BStepLbl.Enabled = false;
             this.BStepLbl.Location = new System.Drawing.Point(25, 29);
             this.BStepLbl.Name = "BStepLbl";
             this.BStepLbl.Size = new System.Drawing.Size(29, 13);
@@ -458,25 +444,24 @@
             // 
             // BCycleTxt
             // 
-            this.BCycleTxt.Enabled = false;
             this.BCycleTxt.Location = new System.Drawing.Point(64, 54);
             this.BCycleTxt.Name = "BCycleTxt";
             this.BCycleTxt.Size = new System.Drawing.Size(68, 20);
             this.BCycleTxt.TabIndex = 38;
             this.BCycleTxt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.BCycleTxt.TextChanged += new System.EventHandler(this.BCycleTxt_TextChanged);
             // 
             // BStepTxt
             // 
-            this.BStepTxt.Enabled = false;
             this.BStepTxt.Location = new System.Drawing.Point(64, 25);
             this.BStepTxt.Name = "BStepTxt";
             this.BStepTxt.Size = new System.Drawing.Size(68, 20);
             this.BStepTxt.TabIndex = 37;
             this.BStepTxt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.BStepTxt.TextChanged += new System.EventHandler(this.BStepTxt_TextChanged);
             // 
             // BStepTB
             // 
-            this.BStepTB.Enabled = false;
             this.BStepTB.Location = new System.Drawing.Point(28, 145);
             this.BStepTB.Maximum = 100;
             this.BStepTB.Name = "BStepTB";
@@ -486,7 +471,6 @@
             // 
             // BCycle1Btn
             // 
-            this.BCycle1Btn.Enabled = false;
             this.BCycle1Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BCycle1Btn.Location = new System.Drawing.Point(138, 51);
             this.BCycle1Btn.Name = "BCycle1Btn";
@@ -499,7 +483,7 @@
             // BConnectBtn
             // 
             this.BConnectBtn.Enabled = false;
-            this.BConnectBtn.Location = new System.Drawing.Point(950, 33);
+            this.BConnectBtn.Location = new System.Drawing.Point(915, 33);
             this.BConnectBtn.Name = "BConnectBtn";
             this.BConnectBtn.Size = new System.Drawing.Size(75, 39);
             this.BConnectBtn.TabIndex = 36;
@@ -510,17 +494,17 @@
             // BConnectionCBox
             // 
             this.BConnectionCBox.FormattingEnabled = true;
-            this.BConnectionCBox.Location = new System.Drawing.Point(823, 34);
+            this.BConnectionCBox.Location = new System.Drawing.Point(817, 33);
             this.BConnectionCBox.Name = "BConnectionCBox";
-            this.BConnectionCBox.Size = new System.Drawing.Size(121, 21);
+            this.BConnectionCBox.Size = new System.Drawing.Size(92, 21);
             this.BConnectionCBox.TabIndex = 13;
             this.BConnectionCBox.DropDown += new System.EventHandler(this.comboBox1_DropDown);
             this.BConnectionCBox.SelectedIndexChanged += new System.EventHandler(this.BConnectionCBox_SelectedIndexChanged);
+            this.BConnectionCBox.TextUpdate += new System.EventHandler(this.BConnectionCBox_TextUpdate);
             // 
             // BSpeedTBLbl
             // 
             this.BSpeedTBLbl.AutoSize = true;
-            this.BSpeedTBLbl.Enabled = false;
             this.BSpeedTBLbl.Location = new System.Drawing.Point(421, 9);
             this.BSpeedTBLbl.Name = "BSpeedTBLbl";
             this.BSpeedTBLbl.Size = new System.Drawing.Size(38, 13);
@@ -529,9 +513,8 @@
             // 
             // BSpeedTB
             // 
-            this.BSpeedTB.Enabled = false;
             this.BSpeedTB.Location = new System.Drawing.Point(456, 3);
-            this.BSpeedTB.Maximum = 30;
+            this.BSpeedTB.Maximum = 50;
             this.BSpeedTB.Minimum = 1;
             this.BSpeedTB.Name = "BSpeedTB";
             this.BSpeedTB.Orientation = System.Windows.Forms.Orientation.Vertical;
@@ -578,7 +561,6 @@
             // uStepChkBtn
             // 
             this.uStepChkBtn.AutoSize = true;
-            this.uStepChkBtn.Enabled = false;
             this.uStepChkBtn.Location = new System.Drawing.Point(402, 150);
             this.uStepChkBtn.Name = "uStepChkBtn";
             this.uStepChkBtn.Size = new System.Drawing.Size(97, 17);
@@ -590,7 +572,6 @@
             // reverseChkBtn
             // 
             this.reverseChkBtn.AutoSize = true;
-            this.reverseChkBtn.Enabled = false;
             this.reverseChkBtn.Location = new System.Drawing.Point(402, 174);
             this.reverseChkBtn.Name = "reverseChkBtn";
             this.reverseChkBtn.Size = new System.Drawing.Size(109, 17);
@@ -602,7 +583,7 @@
             // StartBtn
             // 
             this.StartBtn.Enabled = false;
-            this.StartBtn.Location = new System.Drawing.Point(1193, 31);
+            this.StartBtn.Location = new System.Drawing.Point(3, 3);
             this.StartBtn.Name = "StartBtn";
             this.StartBtn.Size = new System.Drawing.Size(110, 46);
             this.StartBtn.TabIndex = 72;
@@ -614,7 +595,7 @@
             // 
             this.ManageChkBtn.AutoSize = true;
             this.ManageChkBtn.Enabled = false;
-            this.ManageChkBtn.Location = new System.Drawing.Point(1193, 114);
+            this.ManageChkBtn.Location = new System.Drawing.Point(3, 86);
             this.ManageChkBtn.Name = "ManageChkBtn";
             this.ManageChkBtn.Size = new System.Drawing.Size(124, 17);
             this.ManageChkBtn.TabIndex = 73;
@@ -625,7 +606,7 @@
             // captureBtn
             // 
             this.captureBtn.Enabled = false;
-            this.captureBtn.Location = new System.Drawing.Point(1193, 85);
+            this.captureBtn.Location = new System.Drawing.Point(3, 57);
             this.captureBtn.Name = "captureBtn";
             this.captureBtn.Size = new System.Drawing.Size(110, 23);
             this.captureBtn.TabIndex = 74;
@@ -635,15 +616,8 @@
             // 
             // IntervalTmr
             // 
+            this.IntervalTmr.Interval = 1000;
             this.IntervalTmr.Tick += new System.EventHandler(this.IntervalTmr_Tick);
-            // 
-            // ShutterBW
-            // 
-            this.ShutterBW.WorkerReportsProgress = true;
-            this.ShutterBW.WorkerSupportsCancellation = true;
-            this.ShutterBW.DoWork += new System.ComponentModel.DoWorkEventHandler(this.ShutterBW_DoWork);
-            this.ShutterBW.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.ShutterBW_ProgressChanged);
-            this.ShutterBW.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.ShutterBW_RunWorkerCompleted);
             // 
             // textBox1
             // 
@@ -651,15 +625,15 @@
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
             this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox1.Size = new System.Drawing.Size(128, 291);
+            this.textBox1.Size = new System.Drawing.Size(118, 67);
             this.textBox1.TabIndex = 76;
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(3, 473);
+            this.textBox2.Location = new System.Drawing.Point(3, 248);
             this.textBox2.Multiline = true;
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(124, 27);
+            this.textBox2.Size = new System.Drawing.Size(118, 48);
             this.textBox2.TabIndex = 77;
             // 
             // resolutionChkBtn
@@ -668,7 +642,7 @@
             this.resolutionChkBtn.Checked = true;
             this.resolutionChkBtn.CheckState = System.Windows.Forms.CheckState.Checked;
             this.resolutionChkBtn.Enabled = false;
-            this.resolutionChkBtn.Location = new System.Drawing.Point(20, 109);
+            this.resolutionChkBtn.Location = new System.Drawing.Point(20, 137);
             this.resolutionChkBtn.Name = "resolutionChkBtn";
             this.resolutionChkBtn.Size = new System.Drawing.Size(90, 17);
             this.resolutionChkBtn.TabIndex = 78;
@@ -680,7 +654,7 @@
             // 
             this.HPShutterChkBtn.AutoSize = true;
             this.HPShutterChkBtn.Enabled = false;
-            this.HPShutterChkBtn.Location = new System.Drawing.Point(20, 132);
+            this.HPShutterChkBtn.Location = new System.Drawing.Point(20, 160);
             this.HPShutterChkBtn.Name = "HPShutterChkBtn";
             this.HPShutterChkBtn.Size = new System.Drawing.Size(108, 17);
             this.HPShutterChkBtn.TabIndex = 79;
@@ -715,7 +689,8 @@
             this.BoardPanel.Controls.Add(this.BTimeTxt);
             this.BoardPanel.Controls.Add(this.BCycleLbl);
             this.BoardPanel.Controls.Add(this.BStepMax1Btn);
-            this.BoardPanel.Location = new System.Drawing.Point(817, 168);
+            this.BoardPanel.Enabled = false;
+            this.BoardPanel.Location = new System.Drawing.Point(817, 183);
             this.BoardPanel.Name = "BoardPanel";
             this.BoardPanel.Size = new System.Drawing.Size(513, 270);
             this.BoardPanel.TabIndex = 80;
@@ -723,7 +698,6 @@
             // BSpeedImg
             // 
             this.BSpeedImg.BackColor = System.Drawing.Color.Transparent;
-            this.BSpeedImg.Enabled = false;
             this.BSpeedImg.Image = ((System.Drawing.Image)(resources.GetObject("BSpeedImg.Image")));
             this.BSpeedImg.Location = new System.Drawing.Point(479, 15);
             this.BSpeedImg.Name = "BSpeedImg";
@@ -734,7 +708,6 @@
             // BMAuxChkBtn
             // 
             this.BMAuxChkBtn.AutoSize = true;
-            this.BMAuxChkBtn.Enabled = false;
             this.BMAuxChkBtn.Location = new System.Drawing.Point(29, 229);
             this.BMAuxChkBtn.Name = "BMAuxChkBtn";
             this.BMAuxChkBtn.Size = new System.Drawing.Size(93, 17);
@@ -747,14 +720,13 @@
             // 
             this.TestControlPanel.Controls.Add(this.textBox1);
             this.TestControlPanel.Controls.Add(this.getEventTxt);
-            this.TestControlPanel.Controls.Add(this.BShutterBtn);
             this.TestControlPanel.Controls.Add(this.ShutterGB);
             this.TestControlPanel.Controls.Add(this.getEventBtn);
             this.TestControlPanel.Controls.Add(this.TestBtn);
             this.TestControlPanel.Controls.Add(this.textBox2);
-            this.TestControlPanel.Location = new System.Drawing.Point(-2, 227);
+            this.TestControlPanel.Location = new System.Drawing.Point(1, 317);
             this.TestControlPanel.Name = "TestControlPanel";
-            this.TestControlPanel.Size = new System.Drawing.Size(132, 512);
+            this.TestControlPanel.Size = new System.Drawing.Size(128, 311);
             this.TestControlPanel.TabIndex = 81;
             this.TestControlPanel.Visible = false;
             // 
@@ -779,7 +751,7 @@
             this.BoardAuxPanel.Controls.Add(this.BACycle1Btn);
             this.BoardAuxPanel.Controls.Add(this.BACycleLbl);
             this.BoardAuxPanel.Controls.Add(this.BAStepMax1Btn);
-            this.BoardAuxPanel.Location = new System.Drawing.Point(817, 444);
+            this.BoardAuxPanel.Location = new System.Drawing.Point(817, 459);
             this.BoardAuxPanel.Name = "BoardAuxPanel";
             this.BoardAuxPanel.Size = new System.Drawing.Size(513, 210);
             this.BoardAuxPanel.TabIndex = 81;
@@ -788,7 +760,6 @@
             // BASpeedImg
             // 
             this.BASpeedImg.BackColor = System.Drawing.Color.Transparent;
-            this.BASpeedImg.Enabled = false;
             this.BASpeedImg.Image = ((System.Drawing.Image)(resources.GetObject("BASpeedImg.Image")));
             this.BASpeedImg.Location = new System.Drawing.Point(479, 14);
             this.BASpeedImg.Name = "BASpeedImg";
@@ -799,7 +770,6 @@
             // BAStepTBLbl
             // 
             this.BAStepTBLbl.AutoSize = true;
-            this.BAStepTBLbl.Enabled = false;
             this.BAStepTBLbl.Location = new System.Drawing.Point(26, 182);
             this.BAStepTBLbl.Name = "BAStepTBLbl";
             this.BAStepTBLbl.Size = new System.Drawing.Size(32, 13);
@@ -808,7 +778,6 @@
             // 
             // BASpeedTB
             // 
-            this.BASpeedTB.Enabled = false;
             this.BASpeedTB.Location = new System.Drawing.Point(456, 3);
             this.BASpeedTB.Maximum = 30;
             this.BASpeedTB.Minimum = 1;
@@ -824,7 +793,6 @@
             // BAStepLbl
             // 
             this.BAStepLbl.AutoSize = true;
-            this.BAStepLbl.Enabled = false;
             this.BAStepLbl.Location = new System.Drawing.Point(25, 29);
             this.BAStepLbl.Name = "BAStepLbl";
             this.BAStepLbl.Size = new System.Drawing.Size(29, 13);
@@ -834,7 +802,6 @@
             // BAStepMaxLbl
             // 
             this.BAStepMaxLbl.AutoSize = true;
-            this.BAStepMaxLbl.Enabled = false;
             this.BAStepMaxLbl.Location = new System.Drawing.Point(307, 126);
             this.BAStepMaxLbl.Name = "BAStepMaxLbl";
             this.BAStepMaxLbl.Size = new System.Drawing.Size(51, 13);
@@ -843,16 +810,15 @@
             // 
             // BAStepTxt
             // 
-            this.BAStepTxt.Enabled = false;
             this.BAStepTxt.Location = new System.Drawing.Point(64, 25);
             this.BAStepTxt.Name = "BAStepTxt";
             this.BAStepTxt.Size = new System.Drawing.Size(68, 20);
             this.BAStepTxt.TabIndex = 37;
             this.BAStepTxt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.BAStepTxt.TextChanged += new System.EventHandler(this.BAStepTxt_TextChanged);
             // 
             // BAStepTB
             // 
-            this.BAStepTB.Enabled = false;
             this.BAStepTB.Location = new System.Drawing.Point(28, 150);
             this.BAStepTB.Maximum = 100;
             this.BAStepTB.Name = "BAStepTB";
@@ -863,7 +829,6 @@
             // BACycleCountLbl
             // 
             this.BACycleCountLbl.AutoSize = true;
-            this.BACycleCountLbl.Enabled = false;
             this.BACycleCountLbl.Location = new System.Drawing.Point(91, 58);
             this.BACycleCountLbl.Name = "BACycleCountLbl";
             this.BACycleCountLbl.Size = new System.Drawing.Size(13, 13);
@@ -872,7 +837,6 @@
             // 
             // BAStepMaxBtn
             // 
-            this.BAStepMaxBtn.Enabled = false;
             this.BAStepMaxBtn.Location = new System.Drawing.Point(219, 23);
             this.BAStepMaxBtn.Name = "BAStepMaxBtn";
             this.BAStepMaxBtn.Size = new System.Drawing.Size(75, 23);
@@ -884,7 +848,6 @@
             // AreverseChkBtn
             // 
             this.AreverseChkBtn.AutoSize = true;
-            this.AreverseChkBtn.Enabled = false;
             this.AreverseChkBtn.Location = new System.Drawing.Point(402, 179);
             this.AreverseChkBtn.Name = "AreverseChkBtn";
             this.AreverseChkBtn.Size = new System.Drawing.Size(109, 17);
@@ -895,7 +858,6 @@
             // 
             // BACycle2Btn
             // 
-            this.BACycle2Btn.Enabled = false;
             this.BACycle2Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BACycle2Btn.Location = new System.Drawing.Point(113, 52);
             this.BACycle2Btn.Name = "BACycle2Btn";
@@ -908,7 +870,6 @@
             // AuStepChkBtn
             // 
             this.AuStepChkBtn.AutoSize = true;
-            this.AuStepChkBtn.Enabled = false;
             this.AuStepChkBtn.Location = new System.Drawing.Point(402, 155);
             this.AuStepChkBtn.Name = "AuStepChkBtn";
             this.AuStepChkBtn.Size = new System.Drawing.Size(97, 17);
@@ -920,7 +881,6 @@
             // BASpeedTBLbl
             // 
             this.BASpeedTBLbl.AutoSize = true;
-            this.BASpeedTBLbl.Enabled = false;
             this.BASpeedTBLbl.Location = new System.Drawing.Point(421, 9);
             this.BASpeedTBLbl.Name = "BASpeedTBLbl";
             this.BASpeedTBLbl.Size = new System.Drawing.Size(38, 13);
@@ -929,7 +889,6 @@
             // 
             // BAStepSetBtn
             // 
-            this.BAStepSetBtn.Enabled = false;
             this.BAStepSetBtn.Location = new System.Drawing.Point(300, 23);
             this.BAStepSetBtn.Name = "BAStepSetBtn";
             this.BAStepSetBtn.Size = new System.Drawing.Size(75, 23);
@@ -940,7 +899,6 @@
             // 
             // BAStepMax2Btn
             // 
-            this.BAStepMax2Btn.Enabled = false;
             this.BAStepMax2Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BAStepMax2Btn.Location = new System.Drawing.Point(364, 121);
             this.BAStepMax2Btn.Name = "BAStepMax2Btn";
@@ -952,7 +910,6 @@
             // 
             // BAStepMinBtn
             // 
-            this.BAStepMinBtn.Enabled = false;
             this.BAStepMinBtn.Location = new System.Drawing.Point(138, 23);
             this.BAStepMinBtn.Name = "BAStepMinBtn";
             this.BAStepMinBtn.Size = new System.Drawing.Size(75, 23);
@@ -963,7 +920,6 @@
             // 
             // BACycle1Btn
             // 
-            this.BACycle1Btn.Enabled = false;
             this.BACycle1Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BACycle1Btn.Location = new System.Drawing.Point(60, 52);
             this.BACycle1Btn.Name = "BACycle1Btn";
@@ -976,7 +932,6 @@
             // BACycleLbl
             // 
             this.BACycleLbl.AutoSize = true;
-            this.BACycleLbl.Enabled = false;
             this.BACycleLbl.Location = new System.Drawing.Point(25, 57);
             this.BACycleLbl.Name = "BACycleLbl";
             this.BACycleLbl.Size = new System.Drawing.Size(33, 13);
@@ -985,7 +940,6 @@
             // 
             // BAStepMax1Btn
             // 
-            this.BAStepMax1Btn.Enabled = false;
             this.BAStepMax1Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BAStepMax1Btn.Location = new System.Drawing.Point(279, 121);
             this.BAStepMax1Btn.Name = "BAStepMax1Btn";
@@ -997,10 +951,10 @@
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(1194, 76);
+            this.progressBar1.Location = new System.Drawing.Point(4, 48);
             this.progressBar1.MarqueeAnimationSpeed = 1;
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(109, 10);
+            this.progressBar1.Size = new System.Drawing.Size(108, 10);
             this.progressBar1.TabIndex = 82;
             this.progressBar1.Visible = false;
             // 
@@ -1011,40 +965,100 @@
             this.focusTB.Name = "focusTB";
             this.focusTB.Size = new System.Drawing.Size(279, 45);
             this.focusTB.TabIndex = 83;
-            this.focusTB.Visible = false;
             this.focusTB.Scroll += new System.EventHandler(this.focusTB_Scroll);
             // 
             // focusLbl
             // 
             this.focusLbl.AutoSize = true;
-            this.focusLbl.Location = new System.Drawing.Point(3, 28);
+            this.focusLbl.Location = new System.Drawing.Point(4, 5);
             this.focusLbl.Name = "focusLbl";
             this.focusLbl.Size = new System.Drawing.Size(36, 13);
             this.focusLbl.TabIndex = 84;
             this.focusLbl.Text = "Focus";
-            this.focusLbl.Visible = false;
             // 
             // FocusPanel
             // 
+            this.FocusPanel.Controls.Add(this.calibrationChkBtn);
+            this.FocusPanel.Controls.Add(this.CalibrationBtn);
             this.FocusPanel.Controls.Add(this.focusLbl);
             this.FocusPanel.Controls.Add(this.focusTB);
             this.FocusPanel.Location = new System.Drawing.Point(479, 549);
             this.FocusPanel.Name = "FocusPanel";
-            this.FocusPanel.Size = new System.Drawing.Size(332, 79);
+            this.FocusPanel.Size = new System.Drawing.Size(332, 120);
             this.FocusPanel.TabIndex = 85;
+            this.FocusPanel.Visible = false;
+            // 
+            // calibrationChkBtn
+            // 
+            this.calibrationChkBtn.AutoSize = true;
+            this.calibrationChkBtn.Enabled = false;
+            this.calibrationChkBtn.Location = new System.Drawing.Point(119, 85);
+            this.calibrationChkBtn.Name = "calibrationChkBtn";
+            this.calibrationChkBtn.Size = new System.Drawing.Size(96, 17);
+            this.calibrationChkBtn.TabIndex = 74;
+            this.calibrationChkBtn.Text = "Use calibration";
+            this.calibrationChkBtn.UseVisualStyleBackColor = true;
+            this.calibrationChkBtn.CheckedChanged += new System.EventHandler(this.calibrationChkBtn_CheckedChanged);
+            // 
+            // CalibrationBtn
+            // 
+            this.CalibrationBtn.Enabled = false;
+            this.CalibrationBtn.Location = new System.Drawing.Point(38, 79);
+            this.CalibrationBtn.Name = "CalibrationBtn";
+            this.CalibrationBtn.Size = new System.Drawing.Size(75, 23);
+            this.CalibrationBtn.TabIndex = 78;
+            this.CalibrationBtn.Text = "Calibrate";
+            this.CalibrationBtn.UseVisualStyleBackColor = true;
+            this.CalibrationBtn.Click += new System.EventHandler(this.CalibrationBtn_Click);
             // 
             // CameraPanel
             // 
+            this.CameraPanel.Controls.Add(this.CommentBtn);
+            this.CameraPanel.Controls.Add(this.NoteChkBtn);
             this.CameraPanel.Controls.Add(this.ConnectBtn);
             this.CameraPanel.Controls.Add(this.guideRefreshBtn);
+            this.CameraPanel.Controls.Add(this.BShutterBtn);
             this.CameraPanel.Controls.Add(this.guideChkBtn);
             this.CameraPanel.Controls.Add(this.LiveviewBtn);
             this.CameraPanel.Controls.Add(this.resolutionChkBtn);
             this.CameraPanel.Controls.Add(this.HPShutterChkBtn);
-            this.CameraPanel.Location = new System.Drawing.Point(1, 34);
+            this.CameraPanel.Location = new System.Drawing.Point(1, 33);
             this.CameraPanel.Name = "CameraPanel";
-            this.CameraPanel.Size = new System.Drawing.Size(129, 195);
+            this.CameraPanel.Size = new System.Drawing.Size(129, 278);
             this.CameraPanel.TabIndex = 86;
+            // 
+            // CommentBtn
+            // 
+            this.CommentBtn.Enabled = false;
+            this.CommentBtn.Location = new System.Drawing.Point(17, 204);
+            this.CommentBtn.Name = "CommentBtn";
+            this.CommentBtn.Size = new System.Drawing.Size(82, 23);
+            this.CommentBtn.TabIndex = 81;
+            this.CommentBtn.Text = "Add comment";
+            this.CommentBtn.UseVisualStyleBackColor = true;
+            this.CommentBtn.Click += new System.EventHandler(this.CommentBtn_Click);
+            // 
+            // NoteChkBtn
+            // 
+            this.NoteChkBtn.AutoSize = true;
+            this.NoteChkBtn.Enabled = false;
+            this.NoteChkBtn.Location = new System.Drawing.Point(20, 183);
+            this.NoteChkBtn.Name = "NoteChkBtn";
+            this.NoteChkBtn.Size = new System.Drawing.Size(71, 17);
+            this.NoteChkBtn.TabIndex = 80;
+            this.NoteChkBtn.Text = "Add Note";
+            this.NoteChkBtn.UseVisualStyleBackColor = true;
+            // 
+            // CapturePanel
+            // 
+            this.CapturePanel.Controls.Add(this.StartBtn);
+            this.CapturePanel.Controls.Add(this.progressBar1);
+            this.CapturePanel.Controls.Add(this.ManageChkBtn);
+            this.CapturePanel.Controls.Add(this.captureBtn);
+            this.CapturePanel.Location = new System.Drawing.Point(1199, 69);
+            this.CapturePanel.Name = "CapturePanel";
+            this.CapturePanel.Size = new System.Drawing.Size(131, 105);
+            this.CapturePanel.TabIndex = 87;
             // 
             // Form1
             // 
@@ -1052,15 +1066,12 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1350, 729);
+            this.Controls.Add(this.CapturePanel);
             this.Controls.Add(this.CameraPanel);
             this.Controls.Add(this.FocusPanel);
-            this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.BoardAuxPanel);
             this.Controls.Add(this.TestControlPanel);
             this.Controls.Add(this.BoardPanel);
-            this.Controls.Add(this.captureBtn);
-            this.Controls.Add(this.ManageChkBtn);
-            this.Controls.Add(this.StartBtn);
             this.Controls.Add(this.ImgGuide);
             this.Controls.Add(this.ConnectionTxt);
             this.Controls.Add(this.BStateLbl);
@@ -1098,6 +1109,8 @@
             this.FocusPanel.PerformLayout();
             this.CameraPanel.ResumeLayout(false);
             this.CameraPanel.PerformLayout();
+            this.CapturePanel.ResumeLayout(false);
+            this.CapturePanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1118,7 +1131,6 @@
         private System.Windows.Forms.CheckBox guideChkBtn;
         private System.Windows.Forms.PictureBox ImgAux;
         private System.Windows.Forms.PictureBox ImgLogo;
-        private System.IO.Ports.SerialPort serialPort1;
         private System.Windows.Forms.Button guideRefreshBtn;
         private System.Windows.Forms.Button BShutterBtn;
         private System.Windows.Forms.Label BStepMaxLbl;
@@ -1154,7 +1166,6 @@
         private System.Windows.Forms.CheckBox ManageChkBtn;
         private System.Windows.Forms.Button captureBtn;
         private System.Windows.Forms.Timer IntervalTmr;
-        private System.ComponentModel.BackgroundWorker ShutterBW;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.CheckBox resolutionChkBtn;
@@ -1188,6 +1199,11 @@
         private System.Windows.Forms.Label focusLbl;
         private System.Windows.Forms.Panel FocusPanel;
         private System.Windows.Forms.Panel CameraPanel;
+        private System.Windows.Forms.CheckBox NoteChkBtn;
+        private System.Windows.Forms.Button CommentBtn;
+        private System.Windows.Forms.CheckBox calibrationChkBtn;
+        private System.Windows.Forms.Button CalibrationBtn;
+        private System.Windows.Forms.Panel CapturePanel;
     }
 }
 

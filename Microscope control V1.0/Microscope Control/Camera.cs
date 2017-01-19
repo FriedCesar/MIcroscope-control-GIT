@@ -28,13 +28,6 @@ namespace Microscope_Control
 
     class Camera
     {
-        //  Public Variable definition
-
-        public bool CamConStatus = false;                           // Camera connection flag
-        public bool FlagLvw = false;                                // Flag to retrieve action on liveview event
-        public bool shutterFlag = false;                            // Shutter button flag
-        public string CamResponse = "";                             // Retrieves the camera response when any action is invoked
-        public string lvwURL = "";                                  // Stores camera URL for liveview
 
         public class RootGetEvent
         {
@@ -42,11 +35,27 @@ namespace Microscope_Control
             public JArray result { get; set; }
         }
 
+
+        //  Public Variable definition
+
+        public bool onSave = false;
+        public bool SaveQuery = true;
+        public bool CamConStatus = false;                           // Camera connection flag
+        public bool FlagLvw = false;                                // Flag to retrieve action on liveview event
+        public int imgCount = 0;
+        public string lvwURL = "";                                  // Stores camera URL for liveview
+        public string SavePath;
+        public string SaveName;
+        public string CamResponse = "";                             // Retrieves the camera response when any action is invoked
+        
+                    
+        public event ConnectEventHandler ConnectEvent;
+        ConnectEventArgs args = new ConnectEventArgs();
         protected virtual void OnConnectEvent(ConnectEventArgs e)
         {
             ConnectEvent?.Invoke(this, e);
         }
-        public event ConnectEventHandler ConnectEvent;
+
 
         // Connection Data
         private Socket UdpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);  // Creates Socket for managing network communication
@@ -65,6 +74,7 @@ namespace Microscope_Control
         public BackgroundWorker Connect = new BackgroundWorker();
         public BackgroundWorker Disconnect = new BackgroundWorker();
         public BackgroundWorker LiveView = new BackgroundWorker();
+        public BackgroundWorker TakePicture = new BackgroundWorker();
 
         public string SendRequest(params string[] data)                                         // Gives format to the action request, manages sending request and receiving response. Output: Response JSON string
         {
@@ -161,12 +171,20 @@ namespace Microscope_Control
             return property;
         }
 
-        public void InitializeCamera()                                                          // Initializes background worker events
+        public Camera()                                                          // Initializes background worker events
         {
             Connect.DoWork += Connect_DoWork;
             Disconnect.DoWork += Disconnect_DoWork;
             LiveView.DoWork += LiveView_DoWork;
+            TakePicture.DoWork += TakePicture_DoWork;
+            TakePicture.RunWorkerCompleted += TakePicture_RunWorkerCompleted1;
             LiveView.WorkerSupportsCancellation = true;
+        }
+
+        private void StatSender(string status)
+        {
+            args.ConnectionState = status;
+            OnConnectEvent(args);
         }
 
         private void Connect_DoWork(object sender, DoWorkEventArgs e)                           // Manages the discovery routine to connect with camera DSC-QX10 (Must be connected to PC WiFi)
@@ -174,22 +192,18 @@ namespace Microscope_Control
             try
             {
                 // Setup Client/Host Endpoints and communication socket
-                ConnectEventArgs args = new ConnectEventArgs();
                 IPEndPoint LocalEndPoint = new IPEndPoint(IPAddress.Any, 60000);                                        // Creates Endpoint to connect with system client
                 IPEndPoint MulticastEndPoint = new IPEndPoint(IPAddress.Parse("239.255.255.250"), 1900);                // Creates Endpoint to connect with camera host (Multicast messages reserved address, Sony SDK)
                 UdpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);          // Creates Socket for managing network communication
                 UdpSocket.Bind(LocalEndPoint);                                                                          // Asociates Local socket to external host (Camera)
-                args.ConnectionState = ("UDP");
-                OnConnectEvent(args);
-                //ConnectionTxt.Text = ("Status\r\n\r\nUDP-Socket setup finished...\r\n");
+                StatSender("UDP");
 
                 // Sends discovery request to camera host (SSDP M-SEARCH)
                 string SearchString = "M-SEARCH * HTTP/1.1\r\nHOST:239.255.255.250:1900\r\nMAN:\"ssdp:discover\"\r\nMX:2\r\nST:urn:schemas-sony-com:service:ScalarWebAPI:1\r\n\r\n";
+                
                 // SSDP M-SEARCH request (SONY SDK) string
                 UdpSocket.SendTo(Encoding.UTF8.GetBytes(SearchString), SocketFlags.None, MulticastEndPoint);            // Sends M-SEARCH request (8-bit Unicode) UNICAST
-                args.ConnectionState = ("MSEARCH");
-                OnConnectEvent(args);
-                //ConnectionTxt.AppendText("M-Search sent\r\n");
+                StatSender("MSEARCH");
 
                 // Receives discovery response from camera UNICAST (TimedOut on 10 secs)
                 byte[] ReceiveBuffer = new byte[64000];
@@ -202,20 +216,17 @@ namespace Microscope_Control
                     i += 1;
                     if (i % 950000 == 0)
                     {
-                        args.ConnectionState = ("WAIT");
-                        OnConnectEvent(args);
+                        StatSender("WAIT");
                     }
                     if (UdpSocket.Available > 0)
                     {
                         ReceivedBytes = UdpSocket.Receive(ReceiveBuffer, SocketFlags.None);
-                        args.ConnectionState = ("CONNECTED");
-                        OnConnectEvent(args);
+                        StatSender("CONNECTED");
                         CamConStatus = true;
 
                         if (ReceivedBytes > 0)
                         {
-                            args.ConnectionState = (Encoding.UTF8.GetString(ReceiveBuffer, 0, ReceivedBytes));
-                            OnConnectEvent(args);
+                            StatSender(Encoding.UTF8.GetString(ReceiveBuffer, 0, ReceivedBytes));
                         }
                         break;
                     }
@@ -226,16 +237,15 @@ namespace Microscope_Control
                     // Setups form objects OnConnect, Zooms camera in and sends request toreceive full resolution images.
                     CamResponse = SendRequest("setPostviewImageSize", "\"Original\"");
                     CamResponse = SendRequest("actZoom", "\"in\",\"start\"");
-                    args.ConnectionState = ("SUCCESS");
-                    OnConnectEvent(args);
+                    CamConStatus = true;
+                    StatSender("SUCCESS");
 
                 }
                 else
                 {
                     CamConStatus = false;
                     UdpSocket.Close();
-                    args.ConnectionState = ("NOTCONNECTED");
-                    OnConnectEvent(args);
+                    StatSender("NOTCONNECTED");
                 }
             }
             catch (Exception ex)
@@ -246,7 +256,7 @@ namespace Microscope_Control
 
         private void Disconnect_DoWork(object sender, DoWorkEventArgs e)                        // Manages the disconnection routine of the camera DSC-QX10
         {
-            //Socket UdpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            CamConStatus = false;
             ConnectEventArgs args = new ConnectEventArgs();
             CamResponse = SendRequest("actZoom", "\"out\",\"start\"");
             int zoom = -1;
@@ -256,9 +266,7 @@ namespace Microscope_Control
                 zoom = Convert.ToInt32(ReadRequestJson(json, 2, "zoomPosition"));
             }
             UdpSocket.Close();
-            CamConStatus = false;
-            args.ConnectionState = ("DISCONNECT");
-            OnConnectEvent(args);
+            StatSender("DISCONNECT");
         }
 
         private void LiveView_DoWork(object sender, DoWorkEventArgs e)                          // Request liveview image, reads and stores image 
@@ -326,8 +334,7 @@ namespace Microscope_Control
                         BinaryReader reader = new BinaryReader(stream);
                         bmpImage = (Bitmap)Image.FromStream(stream);
 
-                        args.ConnectionState = ("LIVEVIEW");
-                        OnConnectEvent(args);
+                        StatSender("LIVEVIEW");
                     }
                 }
 
@@ -338,15 +345,28 @@ namespace Microscope_Control
             }
             e.Cancel = true;
         }
-        
+
+        private void TakePicture_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            WebClient imageClient = new WebClient();                                                // Initializes webclient for image managing
+            onSave = true;                                                                          // Sets OnSave flag
+            CamResponse = SendRequest("actTakePicture", "");                                        // Sends HTTP GET request, retrieves image URL
+            string imgURL = ReadRequestJson(CamResponse, 0, 0);                                            //NON JSON SOLUTION: CamResponse.Substring(20).Split('\"').FirstOrDefault();
+            StatSender("PICTURE");
+            if (SaveQuery)
+                imageClient.DownloadFile(imgURL, SavePath + "\\" + SaveName);                                   // Saves File
+        }
+
+        private void TakePicture_RunWorkerCompleted1(object sender, RunWorkerCompletedEventArgs e)
+        {
+            StatSender("IMGSAVED");
+        }
+
         private static void ThreadProc()                                                        // Connection timer, manages timeout OnConnection to cammera
         {
             Thread.Sleep(10000);
         }
-
-
-
-
     }
 
 

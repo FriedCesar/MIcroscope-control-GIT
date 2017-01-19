@@ -87,13 +87,16 @@ bool endFlag = false;       // OnDisconnect endFlag is true
 byte sessionB;              // Stores session number
 byte sessionRx;             // Stores OnCommand Session identifier
 byte rxByte;                // Receives and stores OnCommand byte
-unsigned char posL;         // Stores 16-byte, high, for position information
+unsigned char posL;         // Stores 16-byte, high, for position information //unsigned
 unsigned char posH;         // Stores 16-byte, low, for position information
 int data1 = 0;              // Save process Data manager
 int data2 = 0;              // Save process Data manager
 int i;                      // Multipurpose counter
 String rxData;              // Command reception storage string
+
+unsigned char servoData;
 Servo myServo;
+
 
 // Calls motor initialization function: (Step multiplier, Received position, Last Position, Current Position, Direction multiplier, uStep1 pin, uStep2 pin, uStep3 pin, direction pin,
 //                                       Sleep pin, Reset pin, [Pulse pin, pulse train pin (High status cycle), pulse train pin (Low status cycle)])
@@ -118,7 +121,7 @@ void setup()
   Blink(motorMain.pulse, 50);
   digitalWrite(motorMain.dir, LOW);
   Blink(motorMain.pulse, 50);
-  digitalWrite(motorMain.slp, LOW);  // Activate Stepper Motor Driver
+  digitalWrite(motorMain.slp, LOW);  // Deactivate Stepper Motor Driver
   digitalWrite(motorMain.rst, LOW);
 
   digitalWrite(motorAux.slp, HIGH);   // Activate Stepper Motor Driver (Auxiliar)
@@ -127,15 +130,16 @@ void setup()
   Blink(motorAux.pulse, 50);
   digitalWrite(motorAux.dir, LOW);
   Blink(motorAux.pulse, 50);
-  digitalWrite(motorAux.slp, LOW);   // Activate Stepper Motor Driver (Auxiliar)
+  digitalWrite(motorAux.slp, LOW);   // Deactivate Stepper Motor Driver (Auxiliar)
   digitalWrite(motorAux.rst, LOW);
 
   delay(5);
 
   digitalWrite(led, LOW);
   myServo.attach(22);
+  myServo.write(0);
 
-  Serial.begin(57600, SERIAL_8N1);                  // Start communication (Hearing)
+  Serial.begin(115200, SERIAL_8N1);                  // Start communication (Hearing)
   while (!Serial)
   {
     ;
@@ -148,11 +152,12 @@ void loop()                                         // Check connection status a
   else digitalWrite(led, LOW);
   if (endFlag)
   {
+    myServo.write(0);
     PinStart();
     Blink (LD, 1);
     Serial.end();
     Blink (LD, 2);
-    Serial.begin(57600, SERIAL_8N1);
+    Serial.begin(115200, SERIAL_8N1);
     endFlag = false;
     motorMain = initMotor(MMain);
     motorAux  = initMotor(MAux);
@@ -230,33 +235,77 @@ MOTOR initMotor(int initVal[18])                    // Asigns value to motor str
 
 //***************************************** Program management functions *****************************************
 
+char command;
+char identifier;
+char head = '¬';
+String start;
+String tail;
+String data;
+
 void serialEvent()                                  // Serial event handler, in charge of connection/disconnection and dirtibuting action on motor (Main and auxiliar)
 {
+  command = "";
+  identifier = "";
+  start = "";
+  tail = "";
+  data = "";
+  rxData = "";
+  //delay(1);
   while (Serial.available() > 0)
   {
-    delay(1);
+    //delay(1);
     rxByte = Serial.read();
+    //if (rxByte != 0x0A)
+    //{
+    delay(1);
+    //Serial.write(rxByte);
     rxData += char(rxByte);
-    if (rxData == ("COMREQU"))
+    //}
+  }
+  command = rxData[2];
+
+  for (i = 3; i < rxData.length() - 2; i++)
+  {
+    data += char(rxData[i]);
+  }
+  for (i = 0; i < 2; i++)
+  {
+    start += char(rxData[i]);
+    tail += char(rxData[((rxData.length()) - (i + 1))]);
+  }
+  if (command == '@')
+  {
+    sessionB = char(rxData[1]);
+  }
+  //  Serial.println(rxData.length());
+  //  Serial.println(rxData);
+  //  Serial.println(start);
+  //  Serial.println(tail);
+  //  Serial.println(data);
+  //  Serial.println(data[0]);
+  //  Serial.println(command);
+  //  Serial.println(String(char(sessionB)));
+
+  if ((start == tail) && (start == (String(head) + String(char(sessionB)))))
+  {
+
+    if (data == ("COMREQU"))
     {
-      delay(1);
-      rxByte = Serial.read();
-      rxData += char(rxByte);
-      sessionB = rxByte;
-      rxData = "";
       Serial.write("COMSTART");
-      Serial.write(rxByte);
-      delay(5);
-      digitalWrite(motorMain.slp, HIGH);                          // Ativate Stepper Motor Driver
-      digitalWrite(motorMain.rst, HIGH);
+      Serial.write(sessionB);
+
+      motorMain = initMotor(MMain);
+      motorAux  = initMotor(MAux);
+      ReadMem();
+      //digitalWrite(motorMain.slp, HIGH);                          // Ativate Stepper Motor Driver
+      //digitalWrite(motorMain.rst, HIGH);
       startFlag = true;
     }
-    if (rxData == ("COMERROR"))
+    if (data == ("COMERROR"))
     {
-      rxData = "";
       Serial.write("DISCONNECT");
     }
-    if (rxData == ("DISCONNECT"))
+    if (data == ("DISCONNECT"))
     {
       endFlag = true;
       startFlag = false;
@@ -265,20 +314,21 @@ void serialEvent()                                  // Serial event handler, in 
       motorAux  = initMotor(MAux);
       ReadMem();
     }
-
-    if (rxData == ("@"))
+    if (data[0] == ('@'))
     {
+      sessionRx = char(rxData[1]);
       motorMain = ActionHandler(motorMain, '@');
     }
-    if (rxData == ("~"))
+    if (data[0] == ('~'))
     {
+      sessionRx = char(rxData[1]);
       motorAux = ActionHandler(motorAux, '~');
     }
-
-    if (rxByte == 0x0A)
-    {
-      rxData = "";
-    }
+  }
+  else
+  {
+    delay (1);
+    Serial.write("@#@");
   }
 }
 
@@ -328,29 +378,18 @@ MOTOR ActionHandler(MOTOR myMotor, char ID)
   unsigned char npasAuxH = motorAux.npas / 256;
   unsigned char npasAuxL = motorAux.npas - (npasAuxH * 256);
 
-  rxByte = Serial.read();
-  rxData += char(rxByte);
-  sessionRx = rxByte;
-  if (rxByte != sessionB)
+  if (sessionRx != sessionB)
   {
     errorFlag = true;
   }
-  rxByte = Serial.read();
-  rxData += char(rxByte);
-  switch (rxByte)
+  switch (command)
   {
     case 'P':
-      rxByte = Serial.read();
-      posL = rxByte;
-      rxByte = Serial.read();
-      posH = rxByte;
-      delay(1);
-      while (Serial.available() > 0)
-      {
-        Serial.read();
-      }
+      posL = char(data[1]);
+      posH = char(data[2]);
       myMotor.rxPos = posL + (posH * 256);
       myMotor.Pos = (myMotor.rxPos - myMotor.lPos) * (myMotor.sign);
+      delay(1);
       if (myMotor.Pos < 0)
       {
         digitalWrite(myMotor.dir, LOW);
@@ -401,18 +440,20 @@ MOTOR ActionHandler(MOTOR myMotor, char ID)
       break;
     case 'S':
     case 'Z':
-      myMotor.sen = rxByte;
+      myMotor.sen = command;
       if (myMotor.sen == 'S')
       {
         myMotor.sign = myMotor.sign * -1;
       }
-      myMotor.lPos = 0;
-      myMotor.rxPos = 0;
-      myMotor.Pos = 0;
-      rxByte = Serial.read();
-      posL = rxByte;
-      rxByte = Serial.read();
-      posH = rxByte;
+      //      myMotor.lPos = 0;
+      //      myMotor.rxPos = 0;
+      //      myMotor.Pos = 0;
+      //      rxByte = Serial.read();
+      //      posL = rxByte;
+      //      rxByte = Serial.read();
+      //      posH = rxByte;
+      posL = char(data[1]);
+      posH = char(data[2]);
       myMotor.rxPos = posL + (posH * 256);
       myMotor.Pos = (myMotor.rxPos - myMotor.lPos) * (myMotor.sign);
       if (myMotor.Pos < 0)
@@ -428,13 +469,15 @@ MOTOR ActionHandler(MOTOR myMotor, char ID)
         myMotor.sign    = myMotor.sign * -1;
       myMotor.lPos    = 0;
       myMotor.Pos     = 0;
+      myMotor.rxPos = 0;
       Serial.print(ID);
       Serial.write(sessionRx);
       Serial.print("SF");
       break;
     case 'Q':
-      rxByte = Serial.read();
-      myMotor.pulse.tLow = int(rxByte);
+      //      rxByte = Serial.read();
+      //      myMotor.pulse.tLow = int(rxByte);
+      myMotor.pulse.tLow = int(data[1]);
       Serial.print(ID);
       Serial.write(sessionRx);
       Serial.print("QF");
@@ -472,35 +515,40 @@ MOTOR ActionHandler(MOTOR myMotor, char ID)
     case 'V':
       for (i = 0; i < 6; i++)
       {
-        rxByte = Serial.read();
-        EEPROM.write(i, rxByte);
+        //rxByte = Serial.read();
+        EEPROM.write(i, data[i + 1]);
       }
-      rxByte = Serial.read();
-      EEPROM.write(10, rxByte);
-      rxByte = Serial.read();
-      EEPROM.write(11, rxByte);
+      //rxByte = Serial.read();
+      EEPROM.write(10, data[7]);
+      //rxByte = Serial.read();
+      EEPROM.write(11, data[8]);
       ReadMem();
       Serial.print(ID);
       Serial.write(sessionRx);
       Serial.print("VF");
       break;
     case 'A':
-      digitalWrite(motorAux.slp, HIGH);                          // Ativate auxiliar Stepper Motor Driver
-      digitalWrite(motorAux.rst, HIGH);
+      //      digitalWrite(motorAux.slp, HIGH);                          // Ativate auxiliar Stepper Motor Driver
+      //      digitalWrite(motorAux.rst, HIGH);
+      digitalWrite(myMotor.slp, HIGH);                          // Ativate auxiliar Stepper Motor Driver
+      digitalWrite(myMotor.rst, HIGH);
       Serial.print(ID);
       Serial.write(sessionRx);
       Serial.print("AF");
       break;
     case 'D':
-      digitalWrite(motorAux.slp, LOW);                          // Ativate auxiliar Stepper Motor Driver
-      digitalWrite(motorAux.rst, LOW);
+      //      digitalWrite(motorAux.slp, LOW);                          // Ativate auxiliar Stepper Motor Driver
+      //      digitalWrite(motorAux.rst, LOW);
+      digitalWrite(myMotor.slp, LOW);                          // Ativate auxiliar Stepper Motor Driver
+      digitalWrite(myMotor.rst, LOW);
       Serial.print(ID);
       Serial.write(sessionRx);
       Serial.print("DF");
       break;
-      case 'L':
-      rxByte = Serial.read();
-      int servoData = rxByte;
+    case 'L':
+      //      rxByte = Serial.read();
+      //      servoData = rxByte;
+      servoData = int(data[1]);
       myServo.write(servoData);
       Serial.print(ID);
       Serial.write(sessionRx);
