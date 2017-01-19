@@ -43,7 +43,6 @@
             this.guideChkBtn = new System.Windows.Forms.CheckBox();
             this.ImgAux = new System.Windows.Forms.PictureBox();
             this.ImgLogo = new System.Windows.Forms.PictureBox();
-            this.serialPort1 = new System.IO.Ports.SerialPort(this.components);
             this.guideRefreshBtn = new System.Windows.Forms.Button();
             this.BShutterBtn = new System.Windows.Forms.Button();
             this.BStepMaxLbl = new System.Windows.Forms.Label();
@@ -79,6 +78,44 @@
             this.ManageChkBtn = new System.Windows.Forms.CheckBox();
             this.captureBtn = new System.Windows.Forms.Button();
             this.IntervalTmr = new System.Windows.Forms.Timer(this.components);
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.resolutionChkBtn = new System.Windows.Forms.CheckBox();
+            this.HPShutterChkBtn = new System.Windows.Forms.CheckBox();
+            this.BoardPanel = new System.Windows.Forms.Panel();
+            this.BSpeedImg = new System.Windows.Forms.PictureBox();
+            this.BMAuxChkBtn = new System.Windows.Forms.CheckBox();
+            this.TestControlPanel = new System.Windows.Forms.Panel();
+            this.BoardAuxPanel = new System.Windows.Forms.Panel();
+            this.BASpeedImg = new System.Windows.Forms.PictureBox();
+            this.BAStepTBLbl = new System.Windows.Forms.Label();
+            this.BASpeedTB = new System.Windows.Forms.TrackBar();
+            this.BAStepLbl = new System.Windows.Forms.Label();
+            this.BAStepMaxLbl = new System.Windows.Forms.Label();
+            this.BAStepTxt = new System.Windows.Forms.TextBox();
+            this.BAStepTB = new System.Windows.Forms.TrackBar();
+            this.BACycleCountLbl = new System.Windows.Forms.Label();
+            this.BAStepMaxBtn = new System.Windows.Forms.Button();
+            this.AreverseChkBtn = new System.Windows.Forms.CheckBox();
+            this.BACycle2Btn = new System.Windows.Forms.Button();
+            this.AuStepChkBtn = new System.Windows.Forms.CheckBox();
+            this.BASpeedTBLbl = new System.Windows.Forms.Label();
+            this.BAStepSetBtn = new System.Windows.Forms.Button();
+            this.BAStepMax2Btn = new System.Windows.Forms.Button();
+            this.BAStepMinBtn = new System.Windows.Forms.Button();
+            this.BACycle1Btn = new System.Windows.Forms.Button();
+            this.BACycleLbl = new System.Windows.Forms.Label();
+            this.BAStepMax1Btn = new System.Windows.Forms.Button();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.focusTB = new System.Windows.Forms.TrackBar();
+            this.focusLbl = new System.Windows.Forms.Label();
+            this.FocusPanel = new System.Windows.Forms.Panel();
+            this.calibrationChkBtn = new System.Windows.Forms.CheckBox();
+            this.CalibrationBtn = new System.Windows.Forms.Button();
+            this.CameraPanel = new System.Windows.Forms.Panel();
+            this.CommentBtn = new System.Windows.Forms.Button();
+            this.NoteChkBtn = new System.Windows.Forms.CheckBox();
+            this.CapturePanel = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.ImgLiveview)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgGuide)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ImgAux)).BeginInit();
@@ -86,11 +123,22 @@
             ((System.ComponentModel.ISupportInitialize)(this.BStepTB)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.BSpeedTB)).BeginInit();
             this.ShutterGB.SuspendLayout();
+            this.BoardPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.BSpeedImg)).BeginInit();
+            this.TestControlPanel.SuspendLayout();
+            this.BoardAuxPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.BASpeedImg)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.BASpeedTB)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.BAStepTB)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.focusTB)).BeginInit();
+            this.FocusPanel.SuspendLayout();
+            this.CameraPanel.SuspendLayout();
+            this.CapturePanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // TestBtn
             // 
-            this.TestBtn.Location = new System.Drawing.Point(12, 136);
+            this.TestBtn.Location = new System.Drawing.Point(24, 146);
             this.TestBtn.Name = "TestBtn";
             this.TestBtn.Size = new System.Drawing.Size(75, 23);
             this.TestBtn.TabIndex = 0;
@@ -101,7 +149,7 @@
             // ImgLiveview
             // 
             this.ImgLiveview.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.ImgLiveview.Location = new System.Drawing.Point(93, 12);
+            this.ImgLiveview.Location = new System.Drawing.Point(131, 33);
             this.ImgLiveview.Name = "ImgLiveview";
             this.ImgLiveview.Size = new System.Drawing.Size(680, 510);
             this.ImgLiveview.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -111,12 +159,12 @@
             // 
             // timer1
             // 
-            this.timer1.Interval = 1;
+            this.timer1.Interval = 10;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // ConnectBtn
             // 
-            this.ConnectBtn.Location = new System.Drawing.Point(12, 12);
+            this.ConnectBtn.Location = new System.Drawing.Point(21, 9);
             this.ConnectBtn.Name = "ConnectBtn";
             this.ConnectBtn.Size = new System.Drawing.Size(75, 34);
             this.ConnectBtn.TabIndex = 2;
@@ -127,11 +175,12 @@
             // ConnectionTxt
             // 
             this.ConnectionTxt.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.ConnectionTxt.Location = new System.Drawing.Point(93, 0);
+            this.ConnectionTxt.Enabled = false;
+            this.ConnectionTxt.Location = new System.Drawing.Point(131, 33);
             this.ConnectionTxt.Multiline = true;
             this.ConnectionTxt.Name = "ConnectionTxt";
             this.ConnectionTxt.ReadOnly = true;
-            this.ConnectionTxt.Size = new System.Drawing.Size(166, 182);
+            this.ConnectionTxt.Size = new System.Drawing.Size(163, 184);
             this.ConnectionTxt.TabIndex = 4;
             this.ConnectionTxt.Text = "Camera Connection Status";
             this.ConnectionTxt.Visible = false;
@@ -139,7 +188,7 @@
             // LiveviewBtn
             // 
             this.LiveviewBtn.Enabled = false;
-            this.LiveviewBtn.Location = new System.Drawing.Point(12, 52);
+            this.LiveviewBtn.Location = new System.Drawing.Point(21, 49);
             this.LiveviewBtn.Name = "LiveviewBtn";
             this.LiveviewBtn.Size = new System.Drawing.Size(75, 23);
             this.LiveviewBtn.TabIndex = 5;
@@ -149,20 +198,18 @@
             // 
             // getEventBtn
             // 
-            this.getEventBtn.Location = new System.Drawing.Point(12, 81);
+            this.getEventBtn.Location = new System.Drawing.Point(24, 91);
             this.getEventBtn.Name = "getEventBtn";
             this.getEventBtn.Size = new System.Drawing.Size(75, 23);
             this.getEventBtn.TabIndex = 6;
             this.getEventBtn.Text = "getEvent";
             this.getEventBtn.UseVisualStyleBackColor = true;
-            this.getEventBtn.Visible = false;
             this.getEventBtn.Click += new System.EventHandler(this.getEventBtn_Click);
             // 
             // getEventTxt
             // 
-            this.getEventTxt.Location = new System.Drawing.Point(12, 110);
+            this.getEventTxt.Location = new System.Drawing.Point(24, 120);
             this.getEventTxt.Name = "getEventTxt";
-            this.getEventTxt.ReadOnly = true;
             this.getEventTxt.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.getEventTxt.Size = new System.Drawing.Size(75, 20);
             this.getEventTxt.TabIndex = 7;
@@ -176,7 +223,7 @@
             // 
             this.ImgGuide.BackColor = System.Drawing.Color.Transparent;
             this.ImgGuide.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.ImgGuide.Location = new System.Drawing.Point(93, 12);
+            this.ImgGuide.Location = new System.Drawing.Point(131, 33);
             this.ImgGuide.Name = "ImgGuide";
             this.ImgGuide.Size = new System.Drawing.Size(680, 510);
             this.ImgGuide.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -188,7 +235,7 @@
             // 
             this.guideChkBtn.AutoSize = true;
             this.guideChkBtn.Enabled = false;
-            this.guideChkBtn.Location = new System.Drawing.Point(12, 165);
+            this.guideChkBtn.Location = new System.Drawing.Point(20, 83);
             this.guideChkBtn.Name = "guideChkBtn";
             this.guideChkBtn.Size = new System.Drawing.Size(54, 17);
             this.guideChkBtn.TabIndex = 10;
@@ -198,7 +245,7 @@
             // 
             // ImgAux
             // 
-            this.ImgAux.Location = new System.Drawing.Point(976, 275);
+            this.ImgAux.Location = new System.Drawing.Point(131, 549);
             this.ImgAux.Name = "ImgAux";
             this.ImgAux.Size = new System.Drawing.Size(160, 120);
             this.ImgAux.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -210,22 +257,18 @@
             // 
             this.ImgLogo.BackColor = System.Drawing.Color.Transparent;
             this.ImgLogo.Image = ((System.Drawing.Image)(resources.GetObject("ImgLogo.Image")));
-            this.ImgLogo.Location = new System.Drawing.Point(130, 12);
+            this.ImgLogo.Location = new System.Drawing.Point(131, 33);
             this.ImgLogo.Name = "ImgLogo";
-            this.ImgLogo.Size = new System.Drawing.Size(750, 510);
+            this.ImgLogo.Size = new System.Drawing.Size(680, 510);
             this.ImgLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.ImgLogo.TabIndex = 12;
             this.ImgLogo.TabStop = false;
-            // 
-            // serialPort1
-            // 
-            this.serialPort1.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
             // 
             // guideRefreshBtn
             // 
             this.guideRefreshBtn.Enabled = false;
             this.guideRefreshBtn.Image = ((System.Drawing.Image)(resources.GetObject("guideRefreshBtn.Image")));
-            this.guideRefreshBtn.Location = new System.Drawing.Point(64, 161);
+            this.guideRefreshBtn.Location = new System.Drawing.Point(73, 79);
             this.guideRefreshBtn.Name = "guideRefreshBtn";
             this.guideRefreshBtn.Size = new System.Drawing.Size(23, 23);
             this.guideRefreshBtn.TabIndex = 14;
@@ -235,7 +278,7 @@
             // BShutterBtn
             // 
             this.BShutterBtn.Enabled = false;
-            this.BShutterBtn.Location = new System.Drawing.Point(42, 24);
+            this.BShutterBtn.Location = new System.Drawing.Point(21, 108);
             this.BShutterBtn.Name = "BShutterBtn";
             this.BShutterBtn.Size = new System.Drawing.Size(75, 23);
             this.BShutterBtn.TabIndex = 57;
@@ -246,8 +289,7 @@
             // BStepMaxLbl
             // 
             this.BStepMaxLbl.AutoSize = true;
-            this.BStepMaxLbl.Enabled = false;
-            this.BStepMaxLbl.Location = new System.Drawing.Point(1167, 520);
+            this.BStepMaxLbl.Location = new System.Drawing.Point(307, 121);
             this.BStepMaxLbl.Name = "BStepMaxLbl";
             this.BStepMaxLbl.Size = new System.Drawing.Size(51, 13);
             this.BStepMaxLbl.TabIndex = 56;
@@ -255,9 +297,8 @@
             // 
             // BStepMax2Btn
             // 
-            this.BStepMax2Btn.Enabled = false;
             this.BStepMax2Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BStepMax2Btn.Location = new System.Drawing.Point(1224, 515);
+            this.BStepMax2Btn.Location = new System.Drawing.Point(364, 116);
             this.BStepMax2Btn.Name = "BStepMax2Btn";
             this.BStepMax2Btn.Size = new System.Drawing.Size(22, 23);
             this.BStepMax2Btn.TabIndex = 55;
@@ -267,9 +308,8 @@
             // 
             // BStepMax1Btn
             // 
-            this.BStepMax1Btn.Enabled = false;
             this.BStepMax1Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BStepMax1Btn.Location = new System.Drawing.Point(1139, 515);
+            this.BStepMax1Btn.Location = new System.Drawing.Point(279, 116);
             this.BStepMax1Btn.Name = "BStepMax1Btn";
             this.BStepMax1Btn.Size = new System.Drawing.Size(22, 23);
             this.BStepMax1Btn.TabIndex = 54;
@@ -280,8 +320,7 @@
             // BStepTBLbl
             // 
             this.BStepTBLbl.AutoSize = true;
-            this.BStepTBLbl.Enabled = false;
-            this.BStepTBLbl.Location = new System.Drawing.Point(796, 506);
+            this.BStepTBLbl.Location = new System.Drawing.Point(26, 177);
             this.BStepTBLbl.Name = "BStepTBLbl";
             this.BStepTBLbl.Size = new System.Drawing.Size(32, 13);
             this.BStepTBLbl.TabIndex = 53;
@@ -291,7 +330,7 @@
             // 
             this.BStateLbl.AutoSize = true;
             this.BStateLbl.Enabled = false;
-            this.BStateLbl.Location = new System.Drawing.Point(1087, 91);
+            this.BStateLbl.Location = new System.Drawing.Point(996, 33);
             this.BStateLbl.Name = "BStateLbl";
             this.BStateLbl.Size = new System.Drawing.Size(37, 13);
             this.BStateLbl.TabIndex = 51;
@@ -299,8 +338,7 @@
             // 
             // BSaveBtn
             // 
-            this.BSaveBtn.Enabled = false;
-            this.BSaveBtn.Location = new System.Drawing.Point(1009, 152);
+            this.BSaveBtn.Location = new System.Drawing.Point(424, 225);
             this.BSaveBtn.Name = "BSaveBtn";
             this.BSaveBtn.Size = new System.Drawing.Size(75, 23);
             this.BSaveBtn.TabIndex = 45;
@@ -310,8 +348,7 @@
             // 
             // BStepSetBtn
             // 
-            this.BStepSetBtn.Enabled = false;
-            this.BStepSetBtn.Location = new System.Drawing.Point(1171, 182);
+            this.BStepSetBtn.Location = new System.Drawing.Point(300, 23);
             this.BStepSetBtn.Name = "BStepSetBtn";
             this.BStepSetBtn.Size = new System.Drawing.Size(75, 23);
             this.BStepSetBtn.TabIndex = 42;
@@ -321,8 +358,7 @@
             // 
             // BStepMaxBtn
             // 
-            this.BStepMaxBtn.Enabled = false;
-            this.BStepMaxBtn.Location = new System.Drawing.Point(1090, 182);
+            this.BStepMaxBtn.Location = new System.Drawing.Point(219, 23);
             this.BStepMaxBtn.Name = "BStepMaxBtn";
             this.BStepMaxBtn.Size = new System.Drawing.Size(75, 23);
             this.BStepMaxBtn.TabIndex = 43;
@@ -332,8 +368,7 @@
             // 
             // BStepMinBtn
             // 
-            this.BStepMinBtn.Enabled = false;
-            this.BStepMinBtn.Location = new System.Drawing.Point(1009, 182);
+            this.BStepMinBtn.Location = new System.Drawing.Point(138, 23);
             this.BStepMinBtn.Name = "BStepMinBtn";
             this.BStepMinBtn.Size = new System.Drawing.Size(75, 23);
             this.BStepMinBtn.TabIndex = 41;
@@ -344,8 +379,7 @@
             // BCycleCountLbl
             // 
             this.BCycleCountLbl.AutoSize = true;
-            this.BCycleCountLbl.Enabled = false;
-            this.BCycleCountLbl.Location = new System.Drawing.Point(1040, 216);
+            this.BCycleCountLbl.Location = new System.Drawing.Point(169, 57);
             this.BCycleCountLbl.Name = "BCycleCountLbl";
             this.BCycleCountLbl.Size = new System.Drawing.Size(13, 13);
             this.BCycleCountLbl.TabIndex = 52;
@@ -354,8 +388,7 @@
             // BTimeLbl
             // 
             this.BTimeLbl.AutoSize = true;
-            this.BTimeLbl.Enabled = false;
-            this.BTimeLbl.Location = new System.Drawing.Point(899, 244);
+            this.BTimeLbl.Location = new System.Drawing.Point(25, 85);
             this.BTimeLbl.Name = "BTimeLbl";
             this.BTimeLbl.Size = new System.Drawing.Size(30, 13);
             this.BTimeLbl.TabIndex = 50;
@@ -363,17 +396,16 @@
             // 
             // BTimeTxt
             // 
-            this.BTimeTxt.Enabled = false;
-            this.BTimeTxt.Location = new System.Drawing.Point(935, 240);
+            this.BTimeTxt.Location = new System.Drawing.Point(64, 81);
             this.BTimeTxt.Name = "BTimeTxt";
             this.BTimeTxt.Size = new System.Drawing.Size(68, 20);
             this.BTimeTxt.TabIndex = 39;
             this.BTimeTxt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.BTimeTxt.TextChanged += new System.EventHandler(this.BTimeTxt_TextChanged);
             // 
             // BCycleSetBtn
             // 
-            this.BCycleSetBtn.Enabled = false;
-            this.BCycleSetBtn.Location = new System.Drawing.Point(1090, 210);
+            this.BCycleSetBtn.Location = new System.Drawing.Point(219, 51);
             this.BCycleSetBtn.Name = "BCycleSetBtn";
             this.BCycleSetBtn.Size = new System.Drawing.Size(75, 23);
             this.BCycleSetBtn.TabIndex = 46;
@@ -384,8 +416,7 @@
             // BCycleLbl
             // 
             this.BCycleLbl.AutoSize = true;
-            this.BCycleLbl.Enabled = false;
-            this.BCycleLbl.Location = new System.Drawing.Point(899, 216);
+            this.BCycleLbl.Location = new System.Drawing.Point(25, 57);
             this.BCycleLbl.Name = "BCycleLbl";
             this.BCycleLbl.Size = new System.Drawing.Size(33, 13);
             this.BCycleLbl.TabIndex = 49;
@@ -393,9 +424,8 @@
             // 
             // BCycle2Btn
             // 
-            this.BCycle2Btn.Enabled = false;
             this.BCycle2Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BCycle2Btn.Location = new System.Drawing.Point(1062, 210);
+            this.BCycle2Btn.Location = new System.Drawing.Point(191, 51);
             this.BCycle2Btn.Name = "BCycle2Btn";
             this.BCycle2Btn.Size = new System.Drawing.Size(22, 23);
             this.BCycle2Btn.TabIndex = 44;
@@ -406,8 +436,7 @@
             // BStepLbl
             // 
             this.BStepLbl.AutoSize = true;
-            this.BStepLbl.Enabled = false;
-            this.BStepLbl.Location = new System.Drawing.Point(899, 187);
+            this.BStepLbl.Location = new System.Drawing.Point(25, 29);
             this.BStepLbl.Name = "BStepLbl";
             this.BStepLbl.Size = new System.Drawing.Size(29, 13);
             this.BStepLbl.TabIndex = 48;
@@ -415,37 +444,35 @@
             // 
             // BCycleTxt
             // 
-            this.BCycleTxt.Enabled = false;
-            this.BCycleTxt.Location = new System.Drawing.Point(935, 213);
+            this.BCycleTxt.Location = new System.Drawing.Point(64, 54);
             this.BCycleTxt.Name = "BCycleTxt";
             this.BCycleTxt.Size = new System.Drawing.Size(68, 20);
             this.BCycleTxt.TabIndex = 38;
             this.BCycleTxt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.BCycleTxt.TextChanged += new System.EventHandler(this.BCycleTxt_TextChanged);
             // 
             // BStepTxt
             // 
-            this.BStepTxt.Enabled = false;
-            this.BStepTxt.Location = new System.Drawing.Point(935, 184);
+            this.BStepTxt.Location = new System.Drawing.Point(64, 25);
             this.BStepTxt.Name = "BStepTxt";
             this.BStepTxt.Size = new System.Drawing.Size(68, 20);
             this.BStepTxt.TabIndex = 37;
             this.BStepTxt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.BStepTxt.TextChanged += new System.EventHandler(this.BStepTxt_TextChanged);
             // 
             // BStepTB
             // 
-            this.BStepTB.Enabled = false;
-            this.BStepTB.Location = new System.Drawing.Point(803, 544);
+            this.BStepTB.Location = new System.Drawing.Point(28, 145);
             this.BStepTB.Maximum = 100;
             this.BStepTB.Name = "BStepTB";
-            this.BStepTB.Size = new System.Drawing.Size(480, 45);
+            this.BStepTB.Size = new System.Drawing.Size(368, 45);
             this.BStepTB.TabIndex = 40;
             this.BStepTB.Scroll += new System.EventHandler(this.BStepTB_Scroll);
             // 
             // BCycle1Btn
             // 
-            this.BCycle1Btn.Enabled = false;
             this.BCycle1Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BCycle1Btn.Location = new System.Drawing.Point(1009, 210);
+            this.BCycle1Btn.Location = new System.Drawing.Point(138, 51);
             this.BCycle1Btn.Name = "BCycle1Btn";
             this.BCycle1Btn.Size = new System.Drawing.Size(22, 23);
             this.BCycle1Btn.TabIndex = 47;
@@ -456,7 +483,7 @@
             // BConnectBtn
             // 
             this.BConnectBtn.Enabled = false;
-            this.BConnectBtn.Location = new System.Drawing.Point(928, 136);
+            this.BConnectBtn.Location = new System.Drawing.Point(915, 33);
             this.BConnectBtn.Name = "BConnectBtn";
             this.BConnectBtn.Size = new System.Drawing.Size(75, 39);
             this.BConnectBtn.TabIndex = 36;
@@ -467,18 +494,18 @@
             // BConnectionCBox
             // 
             this.BConnectionCBox.FormattingEnabled = true;
-            this.BConnectionCBox.Location = new System.Drawing.Point(801, 137);
+            this.BConnectionCBox.Location = new System.Drawing.Point(817, 33);
             this.BConnectionCBox.Name = "BConnectionCBox";
-            this.BConnectionCBox.Size = new System.Drawing.Size(121, 21);
+            this.BConnectionCBox.Size = new System.Drawing.Size(92, 21);
             this.BConnectionCBox.TabIndex = 13;
             this.BConnectionCBox.DropDown += new System.EventHandler(this.comboBox1_DropDown);
             this.BConnectionCBox.SelectedIndexChanged += new System.EventHandler(this.BConnectionCBox_SelectedIndexChanged);
+            this.BConnectionCBox.TextUpdate += new System.EventHandler(this.BConnectionCBox_TextUpdate);
             // 
             // BSpeedTBLbl
             // 
             this.BSpeedTBLbl.AutoSize = true;
-            this.BSpeedTBLbl.Enabled = false;
-            this.BSpeedTBLbl.Location = new System.Drawing.Point(796, 385);
+            this.BSpeedTBLbl.Location = new System.Drawing.Point(421, 9);
             this.BSpeedTBLbl.Name = "BSpeedTBLbl";
             this.BSpeedTBLbl.Size = new System.Drawing.Size(38, 13);
             this.BSpeedTBLbl.TabIndex = 64;
@@ -486,13 +513,14 @@
             // 
             // BSpeedTB
             // 
-            this.BSpeedTB.Enabled = false;
-            this.BSpeedTB.Location = new System.Drawing.Point(803, 427);
-            this.BSpeedTB.Maximum = 100;
+            this.BSpeedTB.Location = new System.Drawing.Point(456, 3);
+            this.BSpeedTB.Maximum = 50;
             this.BSpeedTB.Minimum = 1;
             this.BSpeedTB.Name = "BSpeedTB";
-            this.BSpeedTB.Size = new System.Drawing.Size(480, 45);
+            this.BSpeedTB.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.BSpeedTB.Size = new System.Drawing.Size(45, 121);
             this.BSpeedTB.TabIndex = 65;
+            this.BSpeedTB.TickStyle = System.Windows.Forms.TickStyle.None;
             this.BSpeedTB.Value = 3;
             this.BSpeedTB.Scroll += new System.EventHandler(this.BSpeedTB_Scroll);
             // 
@@ -500,40 +528,40 @@
             // 
             this.wifiCameraRB.AutoSize = true;
             this.wifiCameraRB.Checked = true;
-            this.wifiCameraRB.Location = new System.Drawing.Point(13, 62);
+            this.wifiCameraRB.Location = new System.Drawing.Point(6, 9);
             this.wifiCameraRB.Name = "wifiCameraRB";
             this.wifiCameraRB.Size = new System.Drawing.Size(104, 17);
             this.wifiCameraRB.TabIndex = 66;
             this.wifiCameraRB.TabStop = true;
             this.wifiCameraRB.Text = "Sony DSC-QX10";
             this.wifiCameraRB.UseVisualStyleBackColor = true;
+            this.wifiCameraRB.Visible = false;
             // 
             // IRCameraRB
             // 
             this.IRCameraRB.AutoSize = true;
-            this.IRCameraRB.Location = new System.Drawing.Point(13, 85);
+            this.IRCameraRB.Location = new System.Drawing.Point(6, 32);
             this.IRCameraRB.Name = "IRCameraRB";
             this.IRCameraRB.Size = new System.Drawing.Size(104, 17);
             this.IRCameraRB.TabIndex = 67;
             this.IRCameraRB.Text = "Nikon IR Shutter";
             this.IRCameraRB.UseVisualStyleBackColor = true;
+            this.IRCameraRB.Visible = false;
             // 
             // ShutterGB
             // 
-            this.ShutterGB.Controls.Add(this.BShutterBtn);
             this.ShutterGB.Controls.Add(this.wifiCameraRB);
             this.ShutterGB.Controls.Add(this.IRCameraRB);
-            this.ShutterGB.Location = new System.Drawing.Point(1139, 268);
+            this.ShutterGB.Location = new System.Drawing.Point(11, 34);
             this.ShutterGB.Name = "ShutterGB";
-            this.ShutterGB.Size = new System.Drawing.Size(130, 130);
+            this.ShutterGB.Size = new System.Drawing.Size(115, 51);
             this.ShutterGB.TabIndex = 69;
             this.ShutterGB.TabStop = false;
             // 
             // uStepChkBtn
             // 
             this.uStepChkBtn.AutoSize = true;
-            this.uStepChkBtn.Enabled = false;
-            this.uStepChkBtn.Location = new System.Drawing.Point(801, 275);
+            this.uStepChkBtn.Location = new System.Drawing.Point(402, 150);
             this.uStepChkBtn.Name = "uStepChkBtn";
             this.uStepChkBtn.Size = new System.Drawing.Size(97, 17);
             this.uStepChkBtn.TabIndex = 70;
@@ -544,8 +572,7 @@
             // reverseChkBtn
             // 
             this.reverseChkBtn.AutoSize = true;
-            this.reverseChkBtn.Enabled = false;
-            this.reverseChkBtn.Location = new System.Drawing.Point(801, 299);
+            this.reverseChkBtn.Location = new System.Drawing.Point(402, 174);
             this.reverseChkBtn.Name = "reverseChkBtn";
             this.reverseChkBtn.Size = new System.Drawing.Size(109, 17);
             this.reverseChkBtn.TabIndex = 71;
@@ -556,9 +583,9 @@
             // StartBtn
             // 
             this.StartBtn.Enabled = false;
-            this.StartBtn.Location = new System.Drawing.Point(64, 596);
+            this.StartBtn.Location = new System.Drawing.Point(3, 3);
             this.StartBtn.Name = "StartBtn";
-            this.StartBtn.Size = new System.Drawing.Size(110, 58);
+            this.StartBtn.Size = new System.Drawing.Size(110, 46);
             this.StartBtn.TabIndex = 72;
             this.StartBtn.Text = "START";
             this.StartBtn.UseVisualStyleBackColor = true;
@@ -568,7 +595,7 @@
             // 
             this.ManageChkBtn.AutoSize = true;
             this.ManageChkBtn.Enabled = false;
-            this.ManageChkBtn.Location = new System.Drawing.Point(180, 625);
+            this.ManageChkBtn.Location = new System.Drawing.Point(3, 86);
             this.ManageChkBtn.Name = "ManageChkBtn";
             this.ManageChkBtn.Size = new System.Drawing.Size(124, 17);
             this.ManageChkBtn.TabIndex = 73;
@@ -579,9 +606,9 @@
             // captureBtn
             // 
             this.captureBtn.Enabled = false;
-            this.captureBtn.Location = new System.Drawing.Point(181, 596);
+            this.captureBtn.Location = new System.Drawing.Point(3, 57);
             this.captureBtn.Name = "captureBtn";
-            this.captureBtn.Size = new System.Drawing.Size(75, 23);
+            this.captureBtn.Size = new System.Drawing.Size(110, 23);
             this.captureBtn.TabIndex = 74;
             this.captureBtn.Text = "Capture";
             this.captureBtn.UseVisualStyleBackColor = true;
@@ -589,56 +616,470 @@
             // 
             // IntervalTmr
             // 
+            this.IntervalTmr.Interval = 1000;
             this.IntervalTmr.Tick += new System.EventHandler(this.IntervalTmr_Tick);
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(3, 175);
+            this.textBox1.Multiline = true;
+            this.textBox1.Name = "textBox1";
+            this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textBox1.Size = new System.Drawing.Size(118, 67);
+            this.textBox1.TabIndex = 76;
+            // 
+            // textBox2
+            // 
+            this.textBox2.Location = new System.Drawing.Point(3, 248);
+            this.textBox2.Multiline = true;
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(118, 48);
+            this.textBox2.TabIndex = 77;
+            // 
+            // resolutionChkBtn
+            // 
+            this.resolutionChkBtn.AutoSize = true;
+            this.resolutionChkBtn.Checked = true;
+            this.resolutionChkBtn.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.resolutionChkBtn.Enabled = false;
+            this.resolutionChkBtn.Location = new System.Drawing.Point(20, 137);
+            this.resolutionChkBtn.Name = "resolutionChkBtn";
+            this.resolutionChkBtn.Size = new System.Drawing.Size(90, 17);
+            this.resolutionChkBtn.TabIndex = 78;
+            this.resolutionChkBtn.Text = "Full resolution";
+            this.resolutionChkBtn.UseVisualStyleBackColor = true;
+            this.resolutionChkBtn.CheckedChanged += new System.EventHandler(this.resolutionChkBtn_CheckedChanged);
+            // 
+            // HPShutterChkBtn
+            // 
+            this.HPShutterChkBtn.AutoSize = true;
+            this.HPShutterChkBtn.Enabled = false;
+            this.HPShutterChkBtn.Location = new System.Drawing.Point(20, 160);
+            this.HPShutterChkBtn.Name = "HPShutterChkBtn";
+            this.HPShutterChkBtn.Size = new System.Drawing.Size(108, 17);
+            this.HPShutterChkBtn.TabIndex = 79;
+            this.HPShutterChkBtn.Text = "Half-press shutter";
+            this.HPShutterChkBtn.UseVisualStyleBackColor = true;
+            this.HPShutterChkBtn.CheckedChanged += new System.EventHandler(this.HPShutterChkBtn_CheckedChanged);
+            // 
+            // BoardPanel
+            // 
+            this.BoardPanel.Controls.Add(this.BSpeedImg);
+            this.BoardPanel.Controls.Add(this.BMAuxChkBtn);
+            this.BoardPanel.Controls.Add(this.BStepTBLbl);
+            this.BoardPanel.Controls.Add(this.BSaveBtn);
+            this.BoardPanel.Controls.Add(this.BSpeedTB);
+            this.BoardPanel.Controls.Add(this.BStepLbl);
+            this.BoardPanel.Controls.Add(this.BStepMaxLbl);
+            this.BoardPanel.Controls.Add(this.BStepTxt);
+            this.BoardPanel.Controls.Add(this.BStepTB);
+            this.BoardPanel.Controls.Add(this.BCycleCountLbl);
+            this.BoardPanel.Controls.Add(this.BTimeLbl);
+            this.BoardPanel.Controls.Add(this.BStepMaxBtn);
+            this.BoardPanel.Controls.Add(this.reverseChkBtn);
+            this.BoardPanel.Controls.Add(this.BCycle2Btn);
+            this.BoardPanel.Controls.Add(this.uStepChkBtn);
+            this.BoardPanel.Controls.Add(this.BSpeedTBLbl);
+            this.BoardPanel.Controls.Add(this.BStepSetBtn);
+            this.BoardPanel.Controls.Add(this.BStepMax2Btn);
+            this.BoardPanel.Controls.Add(this.BStepMinBtn);
+            this.BoardPanel.Controls.Add(this.BCycleSetBtn);
+            this.BoardPanel.Controls.Add(this.BCycle1Btn);
+            this.BoardPanel.Controls.Add(this.BCycleTxt);
+            this.BoardPanel.Controls.Add(this.BTimeTxt);
+            this.BoardPanel.Controls.Add(this.BCycleLbl);
+            this.BoardPanel.Controls.Add(this.BStepMax1Btn);
+            this.BoardPanel.Enabled = false;
+            this.BoardPanel.Location = new System.Drawing.Point(817, 183);
+            this.BoardPanel.Name = "BoardPanel";
+            this.BoardPanel.Size = new System.Drawing.Size(513, 270);
+            this.BoardPanel.TabIndex = 80;
+            // 
+            // BSpeedImg
+            // 
+            this.BSpeedImg.BackColor = System.Drawing.Color.Transparent;
+            this.BSpeedImg.Image = ((System.Drawing.Image)(resources.GetObject("BSpeedImg.Image")));
+            this.BSpeedImg.Location = new System.Drawing.Point(479, 15);
+            this.BSpeedImg.Name = "BSpeedImg";
+            this.BSpeedImg.Size = new System.Drawing.Size(20, 103);
+            this.BSpeedImg.TabIndex = 73;
+            this.BSpeedImg.TabStop = false;
+            // 
+            // BMAuxChkBtn
+            // 
+            this.BMAuxChkBtn.AutoSize = true;
+            this.BMAuxChkBtn.Location = new System.Drawing.Point(29, 229);
+            this.BMAuxChkBtn.Name = "BMAuxChkBtn";
+            this.BMAuxChkBtn.Size = new System.Drawing.Size(93, 17);
+            this.BMAuxChkBtn.TabIndex = 72;
+            this.BMAuxChkBtn.Text = "Auxiliary motor";
+            this.BMAuxChkBtn.UseVisualStyleBackColor = true;
+            this.BMAuxChkBtn.CheckedChanged += new System.EventHandler(this.BMAuxChkBtn_CheckedChanged);
+            // 
+            // TestControlPanel
+            // 
+            this.TestControlPanel.Controls.Add(this.textBox1);
+            this.TestControlPanel.Controls.Add(this.getEventTxt);
+            this.TestControlPanel.Controls.Add(this.ShutterGB);
+            this.TestControlPanel.Controls.Add(this.getEventBtn);
+            this.TestControlPanel.Controls.Add(this.TestBtn);
+            this.TestControlPanel.Controls.Add(this.textBox2);
+            this.TestControlPanel.Location = new System.Drawing.Point(1, 317);
+            this.TestControlPanel.Name = "TestControlPanel";
+            this.TestControlPanel.Size = new System.Drawing.Size(128, 311);
+            this.TestControlPanel.TabIndex = 81;
+            this.TestControlPanel.Visible = false;
+            // 
+            // BoardAuxPanel
+            // 
+            this.BoardAuxPanel.Controls.Add(this.BASpeedImg);
+            this.BoardAuxPanel.Controls.Add(this.BAStepTBLbl);
+            this.BoardAuxPanel.Controls.Add(this.BASpeedTB);
+            this.BoardAuxPanel.Controls.Add(this.BAStepLbl);
+            this.BoardAuxPanel.Controls.Add(this.BAStepMaxLbl);
+            this.BoardAuxPanel.Controls.Add(this.BAStepTxt);
+            this.BoardAuxPanel.Controls.Add(this.BAStepTB);
+            this.BoardAuxPanel.Controls.Add(this.BACycleCountLbl);
+            this.BoardAuxPanel.Controls.Add(this.BAStepMaxBtn);
+            this.BoardAuxPanel.Controls.Add(this.AreverseChkBtn);
+            this.BoardAuxPanel.Controls.Add(this.BACycle2Btn);
+            this.BoardAuxPanel.Controls.Add(this.AuStepChkBtn);
+            this.BoardAuxPanel.Controls.Add(this.BASpeedTBLbl);
+            this.BoardAuxPanel.Controls.Add(this.BAStepSetBtn);
+            this.BoardAuxPanel.Controls.Add(this.BAStepMax2Btn);
+            this.BoardAuxPanel.Controls.Add(this.BAStepMinBtn);
+            this.BoardAuxPanel.Controls.Add(this.BACycle1Btn);
+            this.BoardAuxPanel.Controls.Add(this.BACycleLbl);
+            this.BoardAuxPanel.Controls.Add(this.BAStepMax1Btn);
+            this.BoardAuxPanel.Location = new System.Drawing.Point(817, 459);
+            this.BoardAuxPanel.Name = "BoardAuxPanel";
+            this.BoardAuxPanel.Size = new System.Drawing.Size(513, 210);
+            this.BoardAuxPanel.TabIndex = 81;
+            this.BoardAuxPanel.Visible = false;
+            // 
+            // BASpeedImg
+            // 
+            this.BASpeedImg.BackColor = System.Drawing.Color.Transparent;
+            this.BASpeedImg.Image = ((System.Drawing.Image)(resources.GetObject("BASpeedImg.Image")));
+            this.BASpeedImg.Location = new System.Drawing.Point(479, 14);
+            this.BASpeedImg.Name = "BASpeedImg";
+            this.BASpeedImg.Size = new System.Drawing.Size(20, 103);
+            this.BASpeedImg.TabIndex = 74;
+            this.BASpeedImg.TabStop = false;
+            // 
+            // BAStepTBLbl
+            // 
+            this.BAStepTBLbl.AutoSize = true;
+            this.BAStepTBLbl.Location = new System.Drawing.Point(26, 182);
+            this.BAStepTBLbl.Name = "BAStepTBLbl";
+            this.BAStepTBLbl.Size = new System.Drawing.Size(32, 13);
+            this.BAStepTBLbl.TabIndex = 53;
+            this.BAStepTBLbl.Text = "Step:";
+            // 
+            // BASpeedTB
+            // 
+            this.BASpeedTB.Location = new System.Drawing.Point(456, 3);
+            this.BASpeedTB.Maximum = 30;
+            this.BASpeedTB.Minimum = 1;
+            this.BASpeedTB.Name = "BASpeedTB";
+            this.BASpeedTB.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.BASpeedTB.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.BASpeedTB.Size = new System.Drawing.Size(45, 121);
+            this.BASpeedTB.TabIndex = 65;
+            this.BASpeedTB.TickStyle = System.Windows.Forms.TickStyle.None;
+            this.BASpeedTB.Value = 3;
+            this.BASpeedTB.Scroll += new System.EventHandler(this.BASpeedTB_Scroll);
+            // 
+            // BAStepLbl
+            // 
+            this.BAStepLbl.AutoSize = true;
+            this.BAStepLbl.Location = new System.Drawing.Point(25, 29);
+            this.BAStepLbl.Name = "BAStepLbl";
+            this.BAStepLbl.Size = new System.Drawing.Size(29, 13);
+            this.BAStepLbl.TabIndex = 48;
+            this.BAStepLbl.Text = "Step";
+            // 
+            // BAStepMaxLbl
+            // 
+            this.BAStepMaxLbl.AutoSize = true;
+            this.BAStepMaxLbl.Location = new System.Drawing.Point(307, 126);
+            this.BAStepMaxLbl.Name = "BAStepMaxLbl";
+            this.BAStepMaxLbl.Size = new System.Drawing.Size(51, 13);
+            this.BAStepMaxLbl.TabIndex = 56;
+            this.BAStepMaxLbl.Text = "Max: 100";
+            // 
+            // BAStepTxt
+            // 
+            this.BAStepTxt.Location = new System.Drawing.Point(64, 25);
+            this.BAStepTxt.Name = "BAStepTxt";
+            this.BAStepTxt.Size = new System.Drawing.Size(68, 20);
+            this.BAStepTxt.TabIndex = 37;
+            this.BAStepTxt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.BAStepTxt.TextChanged += new System.EventHandler(this.BAStepTxt_TextChanged);
+            // 
+            // BAStepTB
+            // 
+            this.BAStepTB.Location = new System.Drawing.Point(28, 150);
+            this.BAStepTB.Maximum = 100;
+            this.BAStepTB.Name = "BAStepTB";
+            this.BAStepTB.Size = new System.Drawing.Size(368, 45);
+            this.BAStepTB.TabIndex = 40;
+            this.BAStepTB.Scroll += new System.EventHandler(this.BAStepTB_Scroll);
+            // 
+            // BACycleCountLbl
+            // 
+            this.BACycleCountLbl.AutoSize = true;
+            this.BACycleCountLbl.Location = new System.Drawing.Point(91, 58);
+            this.BACycleCountLbl.Name = "BACycleCountLbl";
+            this.BACycleCountLbl.Size = new System.Drawing.Size(13, 13);
+            this.BACycleCountLbl.TabIndex = 52;
+            this.BACycleCountLbl.Text = "0";
+            // 
+            // BAStepMaxBtn
+            // 
+            this.BAStepMaxBtn.Location = new System.Drawing.Point(219, 23);
+            this.BAStepMaxBtn.Name = "BAStepMaxBtn";
+            this.BAStepMaxBtn.Size = new System.Drawing.Size(75, 23);
+            this.BAStepMaxBtn.TabIndex = 43;
+            this.BAStepMaxBtn.Text = "Set Max";
+            this.BAStepMaxBtn.UseVisualStyleBackColor = true;
+            this.BAStepMaxBtn.Click += new System.EventHandler(this.BAStepMaxBtn_Click);
+            // 
+            // AreverseChkBtn
+            // 
+            this.AreverseChkBtn.AutoSize = true;
+            this.AreverseChkBtn.Location = new System.Drawing.Point(402, 179);
+            this.AreverseChkBtn.Name = "AreverseChkBtn";
+            this.AreverseChkBtn.Size = new System.Drawing.Size(109, 17);
+            this.AreverseChkBtn.TabIndex = 71;
+            this.AreverseChkBtn.Text = "Reverse direction";
+            this.AreverseChkBtn.UseVisualStyleBackColor = true;
+            this.AreverseChkBtn.CheckedChanged += new System.EventHandler(this.AreverseChkBtn_CheckedChanged);
+            // 
+            // BACycle2Btn
+            // 
+            this.BACycle2Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BACycle2Btn.Location = new System.Drawing.Point(113, 52);
+            this.BACycle2Btn.Name = "BACycle2Btn";
+            this.BACycle2Btn.Size = new System.Drawing.Size(22, 23);
+            this.BACycle2Btn.TabIndex = 44;
+            this.BACycle2Btn.Text = "+";
+            this.BACycle2Btn.UseVisualStyleBackColor = true;
+            this.BACycle2Btn.Click += new System.EventHandler(this.BACycle2Btn_Click);
+            // 
+            // AuStepChkBtn
+            // 
+            this.AuStepChkBtn.AutoSize = true;
+            this.AuStepChkBtn.Location = new System.Drawing.Point(402, 155);
+            this.AuStepChkBtn.Name = "AuStepChkBtn";
+            this.AuStepChkBtn.Size = new System.Drawing.Size(97, 17);
+            this.AuStepChkBtn.TabIndex = 70;
+            this.AuStepChkBtn.Text = "Micro Stepping";
+            this.AuStepChkBtn.UseVisualStyleBackColor = true;
+            this.AuStepChkBtn.CheckedChanged += new System.EventHandler(this.AuStepChkBtn_CheckedChanged);
+            // 
+            // BASpeedTBLbl
+            // 
+            this.BASpeedTBLbl.AutoSize = true;
+            this.BASpeedTBLbl.Location = new System.Drawing.Point(421, 9);
+            this.BASpeedTBLbl.Name = "BASpeedTBLbl";
+            this.BASpeedTBLbl.Size = new System.Drawing.Size(38, 13);
+            this.BASpeedTBLbl.TabIndex = 64;
+            this.BASpeedTBLbl.Text = "Speed";
+            // 
+            // BAStepSetBtn
+            // 
+            this.BAStepSetBtn.Location = new System.Drawing.Point(300, 23);
+            this.BAStepSetBtn.Name = "BAStepSetBtn";
+            this.BAStepSetBtn.Size = new System.Drawing.Size(75, 23);
+            this.BAStepSetBtn.TabIndex = 42;
+            this.BAStepSetBtn.Text = "Set as step";
+            this.BAStepSetBtn.UseVisualStyleBackColor = true;
+            this.BAStepSetBtn.Click += new System.EventHandler(this.BAStepSetBtn_Click);
+            // 
+            // BAStepMax2Btn
+            // 
+            this.BAStepMax2Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BAStepMax2Btn.Location = new System.Drawing.Point(364, 121);
+            this.BAStepMax2Btn.Name = "BAStepMax2Btn";
+            this.BAStepMax2Btn.Size = new System.Drawing.Size(22, 23);
+            this.BAStepMax2Btn.TabIndex = 55;
+            this.BAStepMax2Btn.Text = "+";
+            this.BAStepMax2Btn.UseVisualStyleBackColor = true;
+            this.BAStepMax2Btn.Click += new System.EventHandler(this.BAStepMax2Btn_Click);
+            // 
+            // BAStepMinBtn
+            // 
+            this.BAStepMinBtn.Location = new System.Drawing.Point(138, 23);
+            this.BAStepMinBtn.Name = "BAStepMinBtn";
+            this.BAStepMinBtn.Size = new System.Drawing.Size(75, 23);
+            this.BAStepMinBtn.TabIndex = 41;
+            this.BAStepMinBtn.Text = "Set Min";
+            this.BAStepMinBtn.UseVisualStyleBackColor = true;
+            this.BAStepMinBtn.Click += new System.EventHandler(this.BAStepMinBtn_Click);
+            // 
+            // BACycle1Btn
+            // 
+            this.BACycle1Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BACycle1Btn.Location = new System.Drawing.Point(60, 52);
+            this.BACycle1Btn.Name = "BACycle1Btn";
+            this.BACycle1Btn.Size = new System.Drawing.Size(22, 23);
+            this.BACycle1Btn.TabIndex = 47;
+            this.BACycle1Btn.Text = "-";
+            this.BACycle1Btn.UseVisualStyleBackColor = true;
+            this.BACycle1Btn.Click += new System.EventHandler(this.BACycle1Btn_Click);
+            // 
+            // BACycleLbl
+            // 
+            this.BACycleLbl.AutoSize = true;
+            this.BACycleLbl.Location = new System.Drawing.Point(25, 57);
+            this.BACycleLbl.Name = "BACycleLbl";
+            this.BACycleLbl.Size = new System.Drawing.Size(33, 13);
+            this.BACycleLbl.TabIndex = 49;
+            this.BACycleLbl.Text = "Cycle";
+            // 
+            // BAStepMax1Btn
+            // 
+            this.BAStepMax1Btn.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BAStepMax1Btn.Location = new System.Drawing.Point(279, 121);
+            this.BAStepMax1Btn.Name = "BAStepMax1Btn";
+            this.BAStepMax1Btn.Size = new System.Drawing.Size(22, 23);
+            this.BAStepMax1Btn.TabIndex = 54;
+            this.BAStepMax1Btn.Text = "-";
+            this.BAStepMax1Btn.UseVisualStyleBackColor = true;
+            this.BAStepMax1Btn.Click += new System.EventHandler(this.BAStepMax1Btn_Click);
+            // 
+            // progressBar1
+            // 
+            this.progressBar1.Location = new System.Drawing.Point(4, 48);
+            this.progressBar1.MarqueeAnimationSpeed = 1;
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(108, 10);
+            this.progressBar1.TabIndex = 82;
+            this.progressBar1.Visible = false;
+            // 
+            // focusTB
+            // 
+            this.focusTB.Location = new System.Drawing.Point(38, 28);
+            this.focusTB.Maximum = 180;
+            this.focusTB.Name = "focusTB";
+            this.focusTB.Size = new System.Drawing.Size(279, 45);
+            this.focusTB.TabIndex = 83;
+            this.focusTB.Scroll += new System.EventHandler(this.focusTB_Scroll);
+            // 
+            // focusLbl
+            // 
+            this.focusLbl.AutoSize = true;
+            this.focusLbl.Location = new System.Drawing.Point(4, 5);
+            this.focusLbl.Name = "focusLbl";
+            this.focusLbl.Size = new System.Drawing.Size(36, 13);
+            this.focusLbl.TabIndex = 84;
+            this.focusLbl.Text = "Focus";
+            // 
+            // FocusPanel
+            // 
+            this.FocusPanel.Controls.Add(this.calibrationChkBtn);
+            this.FocusPanel.Controls.Add(this.CalibrationBtn);
+            this.FocusPanel.Controls.Add(this.focusLbl);
+            this.FocusPanel.Controls.Add(this.focusTB);
+            this.FocusPanel.Location = new System.Drawing.Point(479, 549);
+            this.FocusPanel.Name = "FocusPanel";
+            this.FocusPanel.Size = new System.Drawing.Size(332, 120);
+            this.FocusPanel.TabIndex = 85;
+            this.FocusPanel.Visible = false;
+            // 
+            // calibrationChkBtn
+            // 
+            this.calibrationChkBtn.AutoSize = true;
+            this.calibrationChkBtn.Enabled = false;
+            this.calibrationChkBtn.Location = new System.Drawing.Point(119, 85);
+            this.calibrationChkBtn.Name = "calibrationChkBtn";
+            this.calibrationChkBtn.Size = new System.Drawing.Size(96, 17);
+            this.calibrationChkBtn.TabIndex = 74;
+            this.calibrationChkBtn.Text = "Use calibration";
+            this.calibrationChkBtn.UseVisualStyleBackColor = true;
+            this.calibrationChkBtn.CheckedChanged += new System.EventHandler(this.calibrationChkBtn_CheckedChanged);
+            // 
+            // CalibrationBtn
+            // 
+            this.CalibrationBtn.Enabled = false;
+            this.CalibrationBtn.Location = new System.Drawing.Point(38, 79);
+            this.CalibrationBtn.Name = "CalibrationBtn";
+            this.CalibrationBtn.Size = new System.Drawing.Size(75, 23);
+            this.CalibrationBtn.TabIndex = 78;
+            this.CalibrationBtn.Text = "Calibrate";
+            this.CalibrationBtn.UseVisualStyleBackColor = true;
+            this.CalibrationBtn.Click += new System.EventHandler(this.CalibrationBtn_Click);
+            // 
+            // CameraPanel
+            // 
+            this.CameraPanel.Controls.Add(this.CommentBtn);
+            this.CameraPanel.Controls.Add(this.NoteChkBtn);
+            this.CameraPanel.Controls.Add(this.ConnectBtn);
+            this.CameraPanel.Controls.Add(this.guideRefreshBtn);
+            this.CameraPanel.Controls.Add(this.BShutterBtn);
+            this.CameraPanel.Controls.Add(this.guideChkBtn);
+            this.CameraPanel.Controls.Add(this.LiveviewBtn);
+            this.CameraPanel.Controls.Add(this.resolutionChkBtn);
+            this.CameraPanel.Controls.Add(this.HPShutterChkBtn);
+            this.CameraPanel.Location = new System.Drawing.Point(1, 33);
+            this.CameraPanel.Name = "CameraPanel";
+            this.CameraPanel.Size = new System.Drawing.Size(129, 278);
+            this.CameraPanel.TabIndex = 86;
+            // 
+            // CommentBtn
+            // 
+            this.CommentBtn.Enabled = false;
+            this.CommentBtn.Location = new System.Drawing.Point(17, 204);
+            this.CommentBtn.Name = "CommentBtn";
+            this.CommentBtn.Size = new System.Drawing.Size(82, 23);
+            this.CommentBtn.TabIndex = 81;
+            this.CommentBtn.Text = "Add comment";
+            this.CommentBtn.UseVisualStyleBackColor = true;
+            this.CommentBtn.Click += new System.EventHandler(this.CommentBtn_Click);
+            // 
+            // NoteChkBtn
+            // 
+            this.NoteChkBtn.AutoSize = true;
+            this.NoteChkBtn.Enabled = false;
+            this.NoteChkBtn.Location = new System.Drawing.Point(20, 183);
+            this.NoteChkBtn.Name = "NoteChkBtn";
+            this.NoteChkBtn.Size = new System.Drawing.Size(71, 17);
+            this.NoteChkBtn.TabIndex = 80;
+            this.NoteChkBtn.Text = "Add Note";
+            this.NoteChkBtn.UseVisualStyleBackColor = true;
+            // 
+            // CapturePanel
+            // 
+            this.CapturePanel.Controls.Add(this.StartBtn);
+            this.CapturePanel.Controls.Add(this.progressBar1);
+            this.CapturePanel.Controls.Add(this.ManageChkBtn);
+            this.CapturePanel.Controls.Add(this.captureBtn);
+            this.CapturePanel.Location = new System.Drawing.Point(1199, 69);
+            this.CapturePanel.Name = "CapturePanel";
+            this.CapturePanel.Size = new System.Drawing.Size(131, 105);
+            this.CapturePanel.TabIndex = 87;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(1302, 707);
-            this.Controls.Add(this.captureBtn);
-            this.Controls.Add(this.ManageChkBtn);
-            this.Controls.Add(this.StartBtn);
-            this.Controls.Add(this.reverseChkBtn);
-            this.Controls.Add(this.uStepChkBtn);
-            this.Controls.Add(this.ConnectBtn);
-            this.Controls.Add(this.TestBtn);
-            this.Controls.Add(this.BConnectionCBox);
-            this.Controls.Add(this.LiveviewBtn);
-            this.Controls.Add(this.BCycleSetBtn);
-            this.Controls.Add(this.getEventBtn);
-            this.Controls.Add(this.ShutterGB);
-            this.Controls.Add(this.getEventTxt);
-            this.Controls.Add(this.BConnectBtn);
-            this.Controls.Add(this.guideChkBtn);
-            this.Controls.Add(this.ImgAux);
-            this.Controls.Add(this.BStepMax1Btn);
-            this.Controls.Add(this.guideRefreshBtn);
+            this.ClientSize = new System.Drawing.Size(1350, 729);
+            this.Controls.Add(this.CapturePanel);
+            this.Controls.Add(this.CameraPanel);
+            this.Controls.Add(this.FocusPanel);
+            this.Controls.Add(this.BoardAuxPanel);
+            this.Controls.Add(this.TestControlPanel);
+            this.Controls.Add(this.BoardPanel);
             this.Controls.Add(this.ImgGuide);
-            this.Controls.Add(this.BStepTBLbl);
             this.Controls.Add(this.ConnectionTxt);
-            this.Controls.Add(this.ImgLiveview);
-            this.Controls.Add(this.BCycleLbl);
-            this.Controls.Add(this.BTimeTxt);
-            this.Controls.Add(this.BCycleTxt);
-            this.Controls.Add(this.BCycle1Btn);
-            this.Controls.Add(this.BStepMinBtn);
-            this.Controls.Add(this.BStepMax2Btn);
-            this.Controls.Add(this.BStepSetBtn);
             this.Controls.Add(this.BStateLbl);
-            this.Controls.Add(this.BSpeedTBLbl);
-            this.Controls.Add(this.BCycle2Btn);
-            this.Controls.Add(this.BStepMaxBtn);
-            this.Controls.Add(this.BTimeLbl);
-            this.Controls.Add(this.BCycleCountLbl);
-            this.Controls.Add(this.BStepTB);
-            this.Controls.Add(this.BStepTxt);
-            this.Controls.Add(this.BStepMaxLbl);
-            this.Controls.Add(this.BStepLbl);
-            this.Controls.Add(this.BSaveBtn);
-            this.Controls.Add(this.BSpeedTB);
+            this.Controls.Add(this.ImgLiveview);
             this.Controls.Add(this.ImgLogo);
+            this.Controls.Add(this.BConnectionCBox);
+            this.Controls.Add(this.ImgAux);
+            this.Controls.Add(this.BConnectBtn);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "Microscope Control V1.0";
@@ -653,6 +1094,23 @@
             ((System.ComponentModel.ISupportInitialize)(this.BSpeedTB)).EndInit();
             this.ShutterGB.ResumeLayout(false);
             this.ShutterGB.PerformLayout();
+            this.BoardPanel.ResumeLayout(false);
+            this.BoardPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.BSpeedImg)).EndInit();
+            this.TestControlPanel.ResumeLayout(false);
+            this.TestControlPanel.PerformLayout();
+            this.BoardAuxPanel.ResumeLayout(false);
+            this.BoardAuxPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.BASpeedImg)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.BASpeedTB)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.BAStepTB)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.focusTB)).EndInit();
+            this.FocusPanel.ResumeLayout(false);
+            this.FocusPanel.PerformLayout();
+            this.CameraPanel.ResumeLayout(false);
+            this.CameraPanel.PerformLayout();
+            this.CapturePanel.ResumeLayout(false);
+            this.CapturePanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -673,7 +1131,6 @@
         private System.Windows.Forms.CheckBox guideChkBtn;
         private System.Windows.Forms.PictureBox ImgAux;
         private System.Windows.Forms.PictureBox ImgLogo;
-        private System.IO.Ports.SerialPort serialPort1;
         private System.Windows.Forms.Button guideRefreshBtn;
         private System.Windows.Forms.Button BShutterBtn;
         private System.Windows.Forms.Label BStepMaxLbl;
@@ -709,6 +1166,44 @@
         private System.Windows.Forms.CheckBox ManageChkBtn;
         private System.Windows.Forms.Button captureBtn;
         private System.Windows.Forms.Timer IntervalTmr;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.CheckBox resolutionChkBtn;
+        private System.Windows.Forms.CheckBox HPShutterChkBtn;
+        private System.Windows.Forms.Panel BoardPanel;
+        private System.Windows.Forms.Panel TestControlPanel;
+        private System.Windows.Forms.Panel BoardAuxPanel;
+        private System.Windows.Forms.Label BAStepTBLbl;
+        private System.Windows.Forms.TrackBar BASpeedTB;
+        private System.Windows.Forms.Label BAStepLbl;
+        private System.Windows.Forms.Label BAStepMaxLbl;
+        private System.Windows.Forms.TextBox BAStepTxt;
+        private System.Windows.Forms.TrackBar BAStepTB;
+        private System.Windows.Forms.Label BACycleCountLbl;
+        private System.Windows.Forms.Button BAStepMaxBtn;
+        private System.Windows.Forms.CheckBox AreverseChkBtn;
+        private System.Windows.Forms.Button BACycle2Btn;
+        private System.Windows.Forms.CheckBox AuStepChkBtn;
+        private System.Windows.Forms.Label BASpeedTBLbl;
+        private System.Windows.Forms.Button BAStepSetBtn;
+        private System.Windows.Forms.Button BAStepMax2Btn;
+        private System.Windows.Forms.Button BAStepMinBtn;
+        private System.Windows.Forms.Button BACycle1Btn;
+        private System.Windows.Forms.Label BACycleLbl;
+        private System.Windows.Forms.Button BAStepMax1Btn;
+        private System.Windows.Forms.CheckBox BMAuxChkBtn;
+        private System.Windows.Forms.PictureBox BSpeedImg;
+        private System.Windows.Forms.PictureBox BASpeedImg;
+        private System.Windows.Forms.ProgressBar progressBar1;
+        private System.Windows.Forms.TrackBar focusTB;
+        private System.Windows.Forms.Label focusLbl;
+        private System.Windows.Forms.Panel FocusPanel;
+        private System.Windows.Forms.Panel CameraPanel;
+        private System.Windows.Forms.CheckBox NoteChkBtn;
+        private System.Windows.Forms.Button CommentBtn;
+        private System.Windows.Forms.CheckBox calibrationChkBtn;
+        private System.Windows.Forms.Button CalibrationBtn;
+        private System.Windows.Forms.Panel CapturePanel;
     }
 }
 

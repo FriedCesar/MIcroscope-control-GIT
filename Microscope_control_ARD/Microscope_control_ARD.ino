@@ -1,116 +1,133 @@
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*
+  Program for the automated visualization on a microscope using a PaP, PC interface and wireless camera (SONY DSC QX-10)
   Programa para el manejo de un motor PaP para la visualización automatizada en microscópio
   Usando el Driver A4988 de Allegro
   Se usa el motor EM-238, BIPOLAR
   Versión 1. Septiembre de 2016
   Versión 1.ALFA Octubre 2016
                             - Bit de dirección
+  Versión 1.ALFA Noviembre 2016
+                            - Complete code modified, the camera has been changed for a SONY DSC QX-10
+                            - Translated into english
+                            - No shutter on board (Wireless camera)
+                            - Modifiable stage moving direction
+                            - Variable step method (microsteping 16 steps, or normal step)
+                            - Improved communication protocol
+                              (Needed, the COM Protocol used before only allowed to calibrate the board, now it has active comunication, in order to permit the interaction PC-Board-Camera))
+                            - TODO:
+                                    - Improve and standarize the COM Protocol (Single structure for every command)
+                                    - Standarize data format (ASCII encoding for every value)
+                                    - Temperature control
+                                    - Option for IR Control, Temp ON-OFF,Servo-motor
+
                                             César Augusto Hernández Espitia
-  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                         DIAGRAMA DE CONECCIONES DEL DRIVER
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                         MOTOR DRIVER CONNECTION DIAGRAM
  *                                                                                         *
  *                                                                                         *
           (8)      DIRECTION (dir)  ___1|-------|9___ GND          (GND)
           (9)           STEP (paso) ___2|       |10__ VDD           (5V)
           (10)        ~SLEEP (dorm) ___3|       |11__ 1B        To motor
           (11)        ~RESET (rese) ___4|       |12__ 1A        To motor
-          (N/C)          MS3        ___5| A4988 |13__ 2A        To motor
-          (N/C)          MS2        ___6|       |14__ 2B        To motor
-          (N/C)          MS1        ___7|       |15__ GND          (GND)
+          (06)           MS3        ___5| A4988 |13__ 2A        To motor
+          (05)           MS2        ___6|       |14__ 2B        To motor
+          (04)           MS1        ___7|       |15__ GND          (GND)
           (12)       ~ENABLE  (ena) ___8|-------|16__ VMOT         (Vin)*
-                                                                          Recomendado 12V >1A
+                                                                          Recommended 12V >1A
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-#include <EEPROM.h>     //Librería para manejar los datos de la EEPROM
+#include <EEPROM.h>     // EEPROM lybrary
 
-typedef struct          // Estructura de almacenamiento para manejo de pulsos
+typedef struct          // Pulse type structure
 {
-  int pin;
-  int tHigh;
-  int tLow;
+  int pin;              // Pin number (Check initialization)
+  int tHigh;            // Time for HIGH output
+  int tLow;             // Time for HIGH output
 } PULSE;
 
-// Inicializar Pines de control (en este caso para un arduino MEGA)
+// Control pininitialization (Current ARDUINO MEGA)
 
 #define ms1   4   // uStep Control
 #define ms2   5
 #define ms3   6
-
-#define sht   7   // Pin para control del disparador de la cámara (Uso con disparador remoto)
-#define dir   8   // Control de dirección
-#define stp   9   // Control de paso
+#define sht   7   // IR Shutter controlPin    (Not used,left in code for future changes)
+#define dir   8   // Direction control
+#define stp   9   // Step Control
 #define slp   10  // ~Sleep
 #define rst   11  // ~Reset
 #define en    12  // ~Enable
-#define led   13  // Led de estado (Parpadeo: en stand by (inicio), encendido: funcionando)
-#define start 50  // Botón de control
-
-// Ajustar acá el ancho de los pulsos!!!!!!!!!!
+#define led   13  // State led
+#define start 50  // Control switch           (Not used,left in code for future changes)
 
 
-PULSE SH = (PULSE)
-{
-  sht, 100, 900
-};           // Pulso obturador
-PULSE ST = (PULSE)
+PULSE ST = (PULSE)              // Motor pulse structure definition
 {
   stp, 1, 6
-};            // Pulso paso del motor
-PULSE LD = (PULSE)
+};
+PULSE LD = (PULSE)              // LED Pulse structure definition
 {
   led, 200, 200
-};          // Pulso del LED
+};
+//PULSE SH = (PULSE)              // Shutter pulse structure
+//{
+//  sht, 100, 900
+//};                                            //(Not declared,left in code for future changes)
 
 // Declaración de variables de programa
 
-///////////////
-bool startFlag = false;
-bool errorFlag = false;
-bool endFlag = false;
-byte sessionB;
-byte sessionRx;
-int pos1;
-int pos2;
-int pos3;
-int stepMult = 1;
-//////////////
+//////////////////////////////////////////////////// Old variables (For reference) //////////////////////////////////////
+//int pos1;
+//int pos2;
+//int pos3;
+//bool cal          = false;  // Bandera de calibración
+//bool tFlag        = true;
+//int j;
+//int k;
+//int startState;             // Variable de estado para el botón de encendido
+//unsigned long temp     = 0 ;
+//unsigned long tempRef  = 0;
+//unsigned long tempDif  = 0;
+//unsigned long Tmil;
+//unsigned long LongStep;
+//int proc = 0;                  // Indicador de proceso
 
-bool cal          = false;  // Bandera de calibración
-bool tFlag        = true;
-byte sen;
-int i;                      // Contadores
-int j;
-int k;
-int startState;             // Variable de estado para el botón de encendido
-int rxPos         = 0;      // Posición actual del TrackBar
-int lPos          = 0;      // Ultima posición del trackBar
-int Pos           = 0;      // Posición para movimiento
-int sign          = 1;      // Auxiliar de dirección
-int data1         = 0;      // Auxiliar para proceso de guardado
-int data2         = 0;      // Auxiliar para proceso de guardado
-unsigned long temp     = 0 ;
-unsigned long tempRef  = 0;
-unsigned long tempDif  = 0;
-unsigned long Tmil;
-unsigned long LongStep;
-int proc = 0;                  // Indicador de proceso
-byte rxByte;
-String rxData;              // Variable de recepción usada en la lectura de puerto serie
-int npas;                   // Número de pasos por imágen
-int ccic;                   // Número de ciclos para completar el canal
-int tcic;                   // Tiempo entre cada ciclo completo en segundos
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool startFlag = false;     // OnConnection StartFlag is true
+bool errorFlag = false;     // OnError errorFlag is true
+bool endFlag = false;       // OnDisconnect endFlag is true
+byte sessionB;              // Stores session number
+byte sessionRx;             // Stores OnCommand Session identifier
+byte sen;                   // Stores direction byte
+byte rxByte;                // Receives and stores OnCommand byte
+unsigned char posL;         // Stores 16-byte, high, for position information
+unsigned char posH;         // Stores 16-byte, low, for position information
+int stepMult = 1;           // Step multiplier, manages uStep (16 pulses = 1 Step)
+int rxPos         = 0;      // TrackBar received position
+int lPos          = 0;      // TrackBar last stored position
+int Pos           = 0;      // Steps Processed to move motor
+int sign          = 1;      // Direction Multiplier (Handles direction change)
+int data1         = 0;      // Save process Data manager
+int data2         = 0;      // Save process Data manager
+int npas;                   // Amount of steps per cycle information
+int ccic;                   // Amount of cycles per image
+int tcic;                   // Time (It doesn't manages timer now, will just save the information related)
+int i;                      // Multipurpose counter
+String rxData;              // Command reception storage string
+//////////////
 
 
 
 void setup()
 {
-  ReadMem();                                        // Cargar los datos almacenados en la EEPROM
+  ReadMem();                                        // Load EEPROM data
 
   pinMode(ms1,    OUTPUT);
   pinMode(ms2,    OUTPUT);
   pinMode(ms3,    OUTPUT);
 
-  pinMode(sht,    OUTPUT);                          // Inicializar los pines de la tarjeta
+  pinMode(sht,    OUTPUT);                          // Initialize board pins
   pinMode(dir,    OUTPUT);
   pinMode(stp,    OUTPUT);
   pinMode(slp,    OUTPUT);
@@ -119,36 +136,41 @@ void setup()
   pinMode(led,    OUTPUT);
   pinMode(start,  INPUT_PULLUP);
 
-  PinStart();                                       // Cerciorarse que los pines están en cero
+  PinStart();                                       // Start every pin in LOW
 
   delay(5);
-  digitalWrite(slp, HIGH);
+  digitalWrite(slp, HIGH);                          // Ativate Stepper Motor Driver
   digitalWrite(rst, HIGH);
-  // Microstep all high
-  digitalWrite(ms1, LOW);
-  digitalWrite(ms2, LOW);
-  digitalWrite(ms3, LOW);
 
-  digitalWrite(dir, HIGH);
+  //  digitalWrite(ms1, LOW);                           // Assure NO Microstep (Microstep: all HIGH)
+  //  digitalWrite(ms2, LOW);
+  //  digitalWrite(ms3, LOW);                           // Not needed (On LOW by PinStart)
+
+  digitalWrite(dir, HIGH);                          // Move motor on startup
   Blink(ST, 128);
   digitalWrite(dir, LOW);
   Blink(ST, 128);
 
+  delay(5);
+  digitalWrite(slp, LOW);                          // Deativate Stepper Motor Driver
+  digitalWrite(rst, LOW);
+
   digitalWrite(led, LOW);
 
-  Serial.begin(57600, SERIAL_8N1);
+  Serial.begin(57600, SERIAL_8N1);                  // Start communication (Hearing)
   while (!Serial)
   {
     ;
   }
 }
 
-void loop()
+void loop()                                         // Check connection status and vizualize state on board (Connected: LED ON, Disconnected: LED OFF, OnDisconnect: LED Blinks)
 {
   if (startFlag) digitalWrite(led, HIGH);
   else digitalWrite(led, LOW);
   if (endFlag)
   {
+    PinStart();
     Blink (LD, 1);
     Serial.end();
     Blink (LD, 2);
@@ -176,6 +198,9 @@ void serialEvent()
       rxData = "";
       Serial.write("COMSTART");
       Serial.write(rxByte);
+      delay(5);
+      digitalWrite(slp, HIGH);                          // Ativate Stepper Motor Driver
+      digitalWrite(rst, HIGH);
       startFlag = true;
     }
     if (rxData == ("COMERROR"))
@@ -188,6 +213,13 @@ void serialEvent()
       endFlag = true;
       startFlag = false;
       rxData = "";
+      ST.pin = stp;
+      ST.tHigh = 1;
+      ST.tLow = 6;
+      lPos = 0;
+      rxPos = 0;
+      Pos = 0;
+      sign = 1;
     }
 
     if (rxData == ("@"))
@@ -278,19 +310,14 @@ void CalibrationHandler()
   switch (rxByte)
   {
     case 'P':
-      //delay(1);
+      //delay(2);
       rxByte = Serial.read();
-      rxData += char(rxByte);
-      pos1 = int(rxByte);
-      //delay(1);
+      posL = rxByte;
+      //delay(2);
       rxByte = Serial.read();
-      rxData += char(rxByte);
-      pos2 = int(rxByte);
-      //delay(1);
-      rxByte = Serial.read();
-      rxData += char(rxByte);
-      pos3 = int(rxByte);
-      rxPos = pos1 + (pos2 * 128) + (pos3 * 128 * 128);
+      posH = rxByte;
+      //delay(2);
+      rxPos = posL + (posH * 256);
       //***********
       Pos = (rxPos - lPos) * (sign);
       if (Pos < 0)
@@ -354,18 +381,28 @@ void CalibrationHandler()
       rxPos = 0;
       Pos = 0;
       //delay(1);
-      rxByte = Serial.read();
-      rxData += char(rxByte);
-      pos1 = int(rxByte);
       //delay(1);
       rxByte = Serial.read();
-      rxData += char(rxByte);
-      pos2 = int(rxByte);
+      posL = rxByte;
       //delay(1);
       rxByte = Serial.read();
-      rxData += char(rxByte);
-      pos3 = int(rxByte);
-      rxPos = pos1 + (pos2 * 128) + (pos3 * 128 * 128);
+      posH = rxByte;
+      //delay(1);
+      rxPos = posL + (posH * 256);
+      //***********
+      Pos = (rxPos - lPos) * (sign);
+      /*      rxByte = Serial.read();
+            rxData += char(rxByte);
+            pos1 = int(rxByte);
+            //delay(1);
+            rxByte = Serial.read();
+            rxData += char(rxByte);
+            pos2 = int(rxByte);
+            //delay(1);
+            rxByte = Serial.read();
+            rxData += char(rxByte);
+            pos3 = int(rxByte);
+            rxPos = pos1 + (pos2 * 128) + (pos3 * 128 * 128);*/
       Pos =  (rxPos - lPos) * (sign) ;
       if (Pos < 0)
       {
@@ -468,8 +505,8 @@ void CalibrationHandler()
       Serial.write(sessionRx);
       Serial.print("VF");
       break;
-      default:
-      
+    default:
+      break;
 
   }
 }
